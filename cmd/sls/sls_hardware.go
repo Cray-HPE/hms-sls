@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@ import (
 
 	base "github.com/Cray-HPE/hms-base"
 	"github.com/Cray-HPE/hms-sls/internal/database"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 
 	"github.com/Cray-HPE/hms-sls/internal/datastore"
 	"github.com/gorilla/mux"
@@ -64,19 +65,19 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 		sendJsonRsp(w, http.StatusBadRequest, "missing required Xname field")
 		return
 	}
-	if !base.IsHMSCompIDValid(jdata.Xname) {
+	if !xnametypes.IsHMSCompIDValid(jdata.Xname) {
 		log.Printf("ERROR, request JSON has invalid Xname field: '%s'.\n",
 			jdata.Xname)
 		sendJsonRsp(w, http.StatusBadRequest, "invalid Xname field")
 		return
 	}
-	if base.GetHMSCompParent(jdata.Xname) != "" {
+	if xnametypes.GetHMSCompParent(jdata.Xname) != "" {
 		if jdata.Parent == "" {
 			log.Printf("ERROR, request JSON has empty Parent field.\n")
 			sendJsonRsp(w, http.StatusBadRequest, "missing required Parent field")
 			return
 		}
-		if !base.IsHMSCompIDValid(jdata.Parent) {
+		if !xnametypes.IsHMSCompIDValid(jdata.Parent) {
 			log.Printf("ERROR, request JSON has invalid Parent field: '%s'.\n",
 				jdata.Parent)
 			sendJsonRsp(w, http.StatusBadRequest, "invalid Parent field")
@@ -172,9 +173,9 @@ func doHardwareGet(w http.ResponseWriter, r *http.Request) {
 func doHardwareObjGet(w http.ResponseWriter, r *http.Request) {
 	// Decode the URL to get the XName
 	vars := mux.Vars(r)
-	xname := base.NormalizeHMSCompID(vars["xname"])
+	xname := xnametypes.NormalizeHMSCompID(vars["xname"])
 
-	if !base.IsHMSCompIDValid(xname) {
+	if !xnametypes.IsHMSCompIDValid(xname) {
 		log.Printf("ERROR, invalid xname in request URL: '%s'\n", xname)
 		sendJsonRsp(w, http.StatusBadRequest, "invalid xname")
 		return
@@ -209,9 +210,9 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 	// Decode the URL to get the XName
 
 	vars := mux.Vars(r)
-	xname := base.NormalizeHMSCompID(vars["xname"])
+	xname := xnametypes.NormalizeHMSCompID(vars["xname"])
 
-	if !base.IsHMSCompIDValid(xname) {
+	if !xnametypes.IsHMSCompIDValid(xname) {
 		log.Printf("ERROR, PUT request with xname: '%s'\n", xname)
 		sendJsonRsp(w, http.StatusBadRequest, "invalid xname")
 		return
@@ -286,9 +287,9 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 
 	var lxname string
 	var ltype sls_common.HMSStringType
-	var ltypestr base.HMSType
+	var ltypestr xnametypes.HMSType
 
-	lxname = base.VerifyNormalizeCompID(jdata.Parent)
+	lxname = xnametypes.VerifyNormalizeCompID(jdata.Parent)
 	if lxname == "" {
 		log.Printf("ERROR, Invalid parent name '%s'\n", jdata.Parent)
 		sendJsonRsp(w, http.StatusBadRequest, "invalid parent xname")
@@ -305,7 +306,7 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 	}
 	cmp.Type = jdata.Type
 
-	// jdata.TypeString is really a base.HMSType
+	// jdata.TypeString is really a xnametypes.HMSType
 	ltype = sls_common.HMSTypeToHMSStringType(jdata.TypeString)
 	if ltype == sls_common.HMSTypeInvalid {
 		log.Printf("ERROR, Invalid TypeString: '%s'\n",
@@ -376,9 +377,9 @@ func doHardwareObjDelete(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the URL to get the XName
 	vars := mux.Vars(r)
-	xname := base.NormalizeHMSCompID(vars["xname"])
+	xname := xnametypes.NormalizeHMSCompID(vars["xname"])
 
-	if !base.IsHMSCompIDValid(xname) {
+	if !xnametypes.IsHMSCompIDValid(xname) {
 		log.Printf("ERROR, invalid Xname in request URL: '%s'\n", xname)
 		sendJsonRsp(w, http.StatusBadRequest, "invalid xname")
 		return

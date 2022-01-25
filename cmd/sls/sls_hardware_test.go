@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,9 @@ import (
 	"reflect"
 	"testing"
 
-	base "github.com/Cray-HPE/hms-base"
 	"github.com/Cray-HPE/hms-sls/internal/database"
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/suite"
 )
@@ -1332,14 +1332,8 @@ func (suite *HardwareTestSuite) SetupSuite() {
 func (suite *HardwareTestSuite) TestVerifyPOSTAllTypes() {
 	// Verify the hardware search endpoint accepts the following SLS types via the type query param
 	tests := []string{
-		// TODO Due to CASMHMS-4270 the following can only only be posted into SLS whith an empty parent:
-		// "d0", // "comptype_cdu",                       // dD
-		// "x1", // "comptype_cabinet",                   // xX
 
-		// TODO due to CASMHMS-4669 the follow can't be posted in due to invalid parent field
-		// "x1c1r1t1f1", // "comptype_rtr_tor_fpga",            // xXcCrRtTfF
-		// "x1c1h1s1",   // "comptype_hl_switch",              // xXcChHsS
-
+		"d0",       // "comptype_cdu",                       // dD
 		"d0w1",     // "comptype_cdu_mgmt_switch",           // dDwW
 		"x1d1",     // "comptype_cab_cdu",                   // xXdD
 		"x1m1",     // "comptype_cab_pdu_controller",        // xXmM
@@ -1348,6 +1342,7 @@ func (suite *HardwareTestSuite) TestVerifyPOSTAllTypes() {
 		"x1m1p0j1", // "comptype_cab_pdu_outlet",            // xXmMpPjJ DEPRECATED
 		"x1m1p0v1", // "comptype_cab_pdu_pwr_connector",     // xXmMpPvV
 
+		"x1",           // "comptype_cabinet",                 // xX
 		"x1c1",         // "comptype_chassis",                 // xXcC
 		"x1c1b0",       // "comptype_chassis_bmc",             // xXcCbB
 		"x1c1t0",       // "comptype_cmm_rectifier",           // xXcCtT
@@ -1370,6 +1365,7 @@ func (suite *HardwareTestSuite) TestVerifyPOSTAllTypes() {
 		"x1c1r1f1",     // "comptype_rtr_fpga",                // xXcCrRfF
 		"x1c1r1b1",     // "comptype_rtr_bmc",                 // xXcCrRbB
 		"x1c1r1b1i1",   // "comptype_rtr_bmc_nic",             // xXcCrRbBiI
+		"x1c1r1t1f1",   // "comptype_rtr_tor_fpga",            // xXcCrRtTfF
 
 		"x1c1r1e1",   // "comptype_hsn_board",             // xXcCrReE
 		"x1c1r1a1l1", // "comptype_hsn_link",              // xXcCrRaAlL
@@ -1377,17 +1373,18 @@ func (suite *HardwareTestSuite) TestVerifyPOSTAllTypes() {
 		"x1c1r1j1p1", // "comptype_hsn_connector_port",    // xXcCrRjJpP
 		"x1c1w1",     // "comptype_mgmt_switch",           // xXcCwW
 		"x1c1w1j1",   // "comptype_mgmt_switch_connector", // xXcCwWjJ
+		"x1c1h1s1",   // "comptype_hl_switch",             // xXcChHsS
 	}
 
 	for _, xname := range tests {
-		suite.True(base.IsHMSCompIDValid(xname), xname)
-		hmsType := base.GetHMSType(xname)
+		suite.True(xnametypes.IsHMSCompIDValid(xname), xname)
+		hmsType := xnametypes.GetHMSType(xname)
 		slsType := sls_common.HMSTypeToHMSStringType(hmsType)
 
 		suite.NotEqual("INVALID", slsType)
 
 		h := sls_common.GenericHardware{
-			Parent:     base.GetHMSCompParent(xname),
+			Parent:     xnametypes.GetHMSCompParent(xname),
 			Xname:      xname,
 			Class:      sls_common.ClassRiver,
 			Type:       slsType,
@@ -1417,14 +1414,8 @@ func (suite *HardwareTestSuite) TestVerifyPUTAllTypes() {
 
 	// Verify the hardware search endpoint accepts the following SLS types via the type query param
 	tests := []string{
-		// TODO Due to CASMHMS-4270 the following components can not be used with PUT
-		// "d0",       // "comptype_cdu",                // dD
-		// "x1",       // "comptype_cabinet",            // xX
 
-		// TODO Due to CASMHMS-4667 the following components do not have a valid parent type defined
-		// "x1c1r1t1f1", //"x1c1r1T1f1",   // "comptype_rtr_tor_fpga",
-		// "x1c1h1s1",   // "comptype_hl_switch",             // xXcChHsS
-
+		"d0",       // "comptype_cdu",                // dD
 		"d0w1",     // "comptype_cdu_mgmt_switch",    // dDwW
 		"x1d1",     // "comptype_cab_cdu",            // xXdD
 		"x1m1p0",   // "comptype_cab_pdu",            // xXmMpP
@@ -1432,6 +1423,7 @@ func (suite *HardwareTestSuite) TestVerifyPUTAllTypes() {
 		"x1m1p0j1", // "comptype_cab_pdu_outlet",     // xXmMpPjJ DEPRECATED
 		"x1m1p0v1", // "comptype_cab_pdu_pwr_connector",     // xXmMpPvV
 
+		"x1",           // "comptype_cabinet",                 // xX
 		"x1c1",         // "comptype_chassis",                 // xXcC
 		"x1c1b0",       // "comptype_chassis_bmc",             // xXcCbB
 		"x1c1t0",       // "comptype_cmm_rectifier",           // xXcCtT
@@ -1452,6 +1444,7 @@ func (suite *HardwareTestSuite) TestVerifyPUTAllTypes() {
 		"x1c1s1b1f0",   // "comptype_node_fpga",               // xXcCsSbBfF
 		"x1c1r1a1",     // "comptype_hsn_asic",                // xXcCrRaA
 		"x1c1r1f1",     // "comptype_rtr_fpga",                // xXcCrRfF
+		"x1c1r1t1f1",   // "comptype_rtr_tor_fpga",            // xXcCrRtTfF
 
 		"x1c1r1b1",   // "comptype_rtr_bmc",                 // xXcCrRbB
 		"x1c1r1b1i1", // "comptype_rtr_bmc_nic",             // xXcCrRbBiI
@@ -1462,17 +1455,18 @@ func (suite *HardwareTestSuite) TestVerifyPUTAllTypes() {
 		"x1c1r1j1p1", // "comptype_hsn_connector_port",    // xXcCrRjJpP
 		"x1c1w1",     // "comptype_mgmt_switch",           // xXcCwW
 		"x1c1w1j1",   // "comptype_mgmt_switch_connector", // xXcCwWjJ
+		"x1c1h1s1",   // "comptype_hl_switch",             // xXcChHsS
 	}
 
 	for _, xname := range tests {
-		suite.True(base.IsHMSCompIDValid(xname), xname)
-		hmsType := base.GetHMSType(xname)
+		suite.True(xnametypes.IsHMSCompIDValid(xname), xname)
+		hmsType := xnametypes.GetHMSType(xname)
 		slsType := sls_common.HMSTypeToHMSStringType(hmsType)
 
 		suite.NotEqual("INVALID", slsType)
 
 		h := sls_common.GenericHardware{
-			Parent:     base.GetHMSCompParent(xname),
+			Parent:     xnametypes.GetHMSCompParent(xname),
 			Xname:      xname,
 			Class:      sls_common.ClassRiver,
 			Type:       slsType,

@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019-2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -31,8 +31,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	base "github.com/Cray-HPE/hms-base"
 	"github.com/Cray-HPE/hms-sls/internal/database"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 )
 
 type DatastoreTestSuite struct {
@@ -73,7 +73,7 @@ func (suite *DatastoreTestSuite) TestGenericHardware_GetParent() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -91,7 +91,7 @@ func (suite *DatastoreTestSuite) TestGenericHardware_GetChildren() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -109,7 +109,7 @@ func (suite *DatastoreTestSuite) TestGenericHardware_GetXname() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -127,7 +127,7 @@ func (suite *DatastoreTestSuite) TestGenericHardware_GetType() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -145,7 +145,7 @@ func (suite *DatastoreTestSuite) TestGenericHardware_GetClass() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -163,12 +163,12 @@ func (suite *DatastoreTestSuite) TestGenericHardware_GetTypeString() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
 	got := o.GetTypeString()
-	exp := base.Chassis
+	exp := xnametypes.Chassis
 	if got != exp {
 		suite.FailNowf("Unexpected return", "Got %s, expected: %s", got, exp)
 	}
@@ -181,7 +181,7 @@ func (suite *DatastoreTestSuite) TestGenericHardware_JSONRoundTrip() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -204,7 +204,7 @@ func (suite *DatastoreTestSuite) TestGComptypeCompmodPowerConnector_GetParent() 
 		Xname:              "x0c0s1v0",
 		Type:               sls_common.NodePowerConnector,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.NodePowerConnector,
+		TypeString:         xnametypes.NodePowerConnector,
 		ExtraPropertiesRaw: map[string]interface{}{"PoweredBy": "x0m0p0j13"},
 	}
 
@@ -222,7 +222,7 @@ func (suite *DatastoreTestSuite) TestComptypeCompmodPowerConnector_GetChildren()
 		Xname:              "x0c0s1v0",
 		Type:               sls_common.NodePowerConnector,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.NodePowerConnector,
+		TypeString:         xnametypes.NodePowerConnector,
 		ExtraPropertiesRaw: map[string]interface{}{"PoweredBy": "x0m0p0j13"},
 	}
 
@@ -240,7 +240,7 @@ func (suite *DatastoreTestSuite) TestComptypeCompmodPowerConnector_GetXname() {
 		Xname:              "x0c0s1v0",
 		Type:               sls_common.NodePowerConnector,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.NodePowerConnector,
+		TypeString:         xnametypes.NodePowerConnector,
 		ExtraPropertiesRaw: map[string]interface{}{"PoweredBy": "x0m0p0j13"},
 	}
 
@@ -258,7 +258,7 @@ func (suite *DatastoreTestSuite) TestComptypeCompmodPowerConnector_GetType() {
 		Xname:              "x0c0s1v0",
 		Type:               sls_common.NodePowerConnector,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.NodePowerConnector,
+		TypeString:         xnametypes.NodePowerConnector,
 		ExtraPropertiesRaw: map[string]interface{}{"PoweredBy": "x0m0p0j13"},
 	}
 
@@ -276,7 +276,7 @@ func (suite *DatastoreTestSuite) TestComptypeCompmodPowerConnector_GetClass() {
 		Xname:              "x0c0s1v0",
 		Type:               sls_common.NodePowerConnector,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.NodePowerConnector,
+		TypeString:         xnametypes.NodePowerConnector,
 		ExtraPropertiesRaw: map[string]interface{}{"PoweredBy": "x0m0p0j13"},
 	}
 
@@ -294,12 +294,12 @@ func (suite *DatastoreTestSuite) TestComptypeCompmodPowerConnector_GetTypeString
 		Xname:              "x0c0s1v0",
 		Type:               sls_common.NodePowerConnector,
 		Class:              sls_common.ClassRiver,
-		TypeString:         base.NodePowerConnector,
+		TypeString:         xnametypes.NodePowerConnector,
 		ExtraPropertiesRaw: map[string]interface{}{"PoweredBy": "x0m0p0j13"},
 	}
 
 	got := o.GetTypeString()
-	exp := base.NodePowerConnector
+	exp := xnametypes.NodePowerConnector
 	if got != exp {
 		suite.FailNowf("Unexpected return", "Got %s, expected: %s", got, exp)
 	}
@@ -312,7 +312,7 @@ func (suite *DatastoreTestSuite) TestGetXname_okay() {
 		Xname:              "x0c0",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassMountain,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -345,7 +345,7 @@ func (suite *DatastoreTestSuite) TestSetXname_okay() {
 		Xname:              "x0c01",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassMountain,
-		TypeString:         base.Chassis,
+		TypeString:         xnametypes.Chassis,
 		ExtraPropertiesRaw: nil,
 	}
 
@@ -383,7 +383,7 @@ func (suite *DatastoreTestSuite) Test_DeleteXname() {
 		Xname:      "x0c1w02",
 		Type:       sls_common.MgmtSwitch,
 		Class:      sls_common.ClassRiver,
-		TypeString: base.MgmtSwitch,
+		TypeString: xnametypes.MgmtSwitch,
 		ExtraPropertiesRaw: map[string]interface{}{
 			"IPV4addr": "",
 			"IPV6addr": "",
