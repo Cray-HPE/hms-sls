@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,8 @@ import (
 
 	"github.com/Cray-HPE/hms-sls/internal/database"
 
-	base "github.com/Cray-HPE/hms-base"
 	"github.com/Cray-HPE/hms-sls/internal/datastore"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 	"github.com/gorilla/mux"
 )
 
@@ -286,7 +286,7 @@ func TestDoLoadstateWithKey(t *testing.T) {
 	}
 
 	// Preload the database with some data so after we make the request we can make sure it's gone
-	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, base.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
+	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, xnametypes.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
 	datastore.SetXname(sampleObj.Xname, sampleObj)
 	sampleNw := sls_common.Network{"DUMMY", "Sample dummy network", []string{}, sls_common.NetworkTypeEthernet, 0, "2014-07-16 20:55:46 +0000 UTC", nil}
 	datastore.SetNetwork(sampleNw)
@@ -482,7 +482,7 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 	}
 
 	// Preload the database with some data so after we make the request we can make sure it's gone
-	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, base.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
+	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, xnametypes.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
 	datastore.SetXname(sampleObj.Xname, sampleObj)
 	sampleNw := sls_common.Network{"DUMMY", "Sample dummy network", []string{}, sls_common.NetworkTypeEthernet, 0, "2014-07-16 20:55:46 +0000 UTC", nil}
 	datastore.SetNetwork(sampleNw)
@@ -621,14 +621,14 @@ func TestDoDumpstate(t *testing.T) {
 		Parent:     "x1000",
 		Xname:      "x1000c3",
 		Type:       sls_common.Chassis,
-		TypeString: base.Chassis,
+		TypeString: xnametypes.Chassis,
 		Children:   []string{},
 	}
 	inputObjs["x1000c3c2"] = sls_common.GenericHardware{
 		Parent:     "x1000c3",
 		Xname:      "x1000c3s2",
 		Type:       sls_common.ComputeModule,
-		TypeString: base.ComputeModule,
+		TypeString: xnametypes.ComputeModule,
 		Children:   []string{},
 	}
 

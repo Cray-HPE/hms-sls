@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2022-01-25
+
+### Added
+
+- CASMHMS-4270 - Support Cabinet and CDU hardware objects
+- CASMHMS-4669 - Support HL Switch and RTR TOR FPGA hardware objects.
+
 ## [1.13.0] - 2021-12-17
 
 ### Added

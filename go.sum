@@ -47,6 +47,8 @@ github.com/Cray-HPE/hms-s3 v1.9.2 h1:qZ/yTTr1+r1slDldOsqkcF736bnsiZ/002JVO7LGD/0
 github.com/Cray-HPE/hms-s3 v1.9.2/go.mod h1:p5pVsMDeOdXKssd9qyFtXo4ztrn2lhD04nrO8+NOi7g=
 github.com/Cray-HPE/hms-securestorage v1.12.2 h1:H5n0i6ldzewd5p7PI2Hktr/+9cYfSCui+0367p2L6n8=
 github.com/Cray-HPE/hms-securestorage v1.12.2/go.mod h1:P4CMKqQVlx/lv+AdyEjNQubZw2FKNyo/IAtFNgQ3VuI=
+github.com/Cray-HPE/hms-xname v1.0.1 h1:ChEuUoYhsWXBmjZzWtDS+zHlmehpyixSB7UW5M58pUo=
+github.com/Cray-HPE/hms-xname v1.0.1/go.mod h1:3A70QF0ddmkt/nz0jis5o8UIB4zAmsgsUiN71dr97n4=
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
 github.com/Microsoft/go-winio v0.4.14 h1:+hMXMk01us9KgxGb7ftKQt2Xpf5hH/yky+TDA+qxleU=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=

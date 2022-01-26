@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@ import (
 
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
 
-	base "github.com/Cray-HPE/hms-base"
 	"github.com/Cray-HPE/hms-sls/internal/database"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 )
 
 const xnameKeyPrefix = "/sls/xnames/"
@@ -38,7 +38,7 @@ const nwKeyPrefix = "/sls/networks/"
 
 func makeKeyXname(key string) string {
 	if !strings.HasPrefix(key, xnameKeyPrefix) {
-		key = path.Join(xnameKeyPrefix, base.NormalizeHMSCompID(key))
+		key = path.Join(xnameKeyPrefix, xnametypes.NormalizeHMSCompID(key))
 	}
 
 	return key
@@ -66,7 +66,7 @@ Returns:
 */
 func GetXname(xname string) (*sls_common.GenericHardware, error) {
 	// check if xname exists
-	xname = base.NormalizeHMSCompID(xname)
+	xname = xnametypes.NormalizeHMSCompID(xname)
 	res, err := database.GetGenericHardwareFromXname(xname)
 	if err == database.NoSuch {
 		return nil, nil
@@ -78,16 +78,16 @@ func GetXname(xname string) (*sls_common.GenericHardware, error) {
 Reduce all xnames to sane, normalized values
 */
 func normalizeCommonFields(obj *sls_common.GenericHardware) error {
-	obj.Xname = base.NormalizeHMSCompID(obj.Xname)
+	obj.Xname = xnametypes.NormalizeHMSCompID(obj.Xname)
 
 	if obj.Parent != "" {
-		obj.Parent = base.NormalizeHMSCompID(obj.Parent)
+		obj.Parent = xnametypes.NormalizeHMSCompID(obj.Parent)
 	} else {
-		obj.Parent = base.GetHMSCompParent(obj.Xname)
+		obj.Parent = xnametypes.GetHMSCompParent(obj.Xname)
 	}
 
 	for i := range obj.Children {
-		obj.Children[i] = base.NormalizeHMSCompID(obj.Children[i])
+		obj.Children[i] = xnametypes.NormalizeHMSCompID(obj.Children[i])
 	}
 
 	return nil
@@ -96,9 +96,9 @@ func normalizeCommonFields(obj *sls_common.GenericHardware) error {
 func normalizeFields(obj sls_common.GenericHardware) (sls_common.GenericHardware, error) {
 	// Find old object and merge in, if possible
 	// xname must be present
-	obj.SetXname(base.NormalizeHMSCompID(obj.GetXname()))
+	obj.SetXname(xnametypes.NormalizeHMSCompID(obj.GetXname()))
 
-	obj.SetParent(base.NormalizeHMSCompID(obj.GetParent()))
+	obj.SetParent(xnametypes.NormalizeHMSCompID(obj.GetParent()))
 
 	// Now do the weird ones (where possible)
 
@@ -118,17 +118,17 @@ func validateCommonFields(obj sls_common.GenericHardware) error {
 	if xnameErr != nil {
 		return xnameErr
 	}
-	xnameType := base.GetHMSType(obj.GetXname())
-	if xnameType == base.HMSTypeInvalid {
+	xnameType := xnametypes.GetHMSType(obj.GetXname())
+	if xnameType == xnametypes.HMSTypeInvalid {
 		return fmt.Errorf("%s: xname %s is invalid", obj.GetXname(), obj.GetXname())
 	}
 
-	invalidTypes := map[base.HMSType]struct{}{
-		base.Partition:      {},
-		base.HMSTypeAll:     {},
-		base.HMSTypeAllComp: {},
-		base.HMSTypeAllSvc:  {},
-		base.HMSTypeInvalid: {},
+	invalidTypes := map[xnametypes.HMSType]struct{}{
+		xnametypes.Partition:      {},
+		xnametypes.HMSTypeAll:     {},
+		xnametypes.HMSTypeAllComp: {},
+		xnametypes.HMSTypeAllSvc:  {},
+		xnametypes.HMSTypeInvalid: {},
 	}
 	_, isInvalid := invalidTypes[xnameType]
 	if isInvalid {
@@ -138,10 +138,10 @@ func validateCommonFields(obj sls_common.GenericHardware) error {
 	}
 
 	// Check the type field matches the xname
-	if sls_common.HMSStringTypeToHMSType(obj.GetType()) != base.GetHMSType(obj.GetXname()) {
+	if sls_common.HMSStringTypeToHMSType(obj.GetType()) != xnametypes.GetHMSType(obj.GetXname()) {
 		return fmt.Errorf(
 			"%s: Type field (%s) does not match type of Xname field (%s)",
-			obj.GetXname(), sls_common.HMSStringTypeToHMSType(obj.GetType()), base.GetHMSType(obj.GetXname()))
+			obj.GetXname(), sls_common.HMSStringTypeToHMSType(obj.GetType()), xnametypes.GetHMSType(obj.GetXname()))
 	}
 
 	// Check the class hint is empty or a valid value
@@ -152,10 +152,10 @@ func validateCommonFields(obj sls_common.GenericHardware) error {
 	}
 
 	// Check parent
-	if obj.GetParent() != base.GetHMSCompParent(obj.GetXname()) {
+	if obj.GetParent() != xnametypes.GetHMSCompParent(obj.GetXname()) {
 		return fmt.Errorf(
 			"%s: Parent field (%s) does not match derived parent (%s)",
-			obj.GetXname(), obj.GetParent(), base.GetHMSCompParent(obj.GetXname()))
+			obj.GetXname(), obj.GetParent(), xnametypes.GetHMSCompParent(obj.GetXname()))
 	}
 
 	// We don't validate children, because we don't store them/build the list
@@ -213,6 +213,7 @@ func validateFields(obj sls_common.GenericHardware) error {
 	case sls_common.NodeBMC:
 	case sls_common.CabinetPDUPowerConnector:
 	case sls_common.CDUMgmtSwitch:
+	case sls_common.MgmtHLSwitch:
 
 	/* These all have no specific properties that need validation */
 	/* for these, do nothing */
@@ -286,12 +287,12 @@ It handles updating the parent and any peers.
 */
 func DeleteXname(xname string) error {
 	// check if xname exists
-	_, err := database.GetGenericHardwareFromXname(base.NormalizeHMSCompID(xname))
+	_, err := database.GetGenericHardwareFromXname(xnametypes.NormalizeHMSCompID(xname))
 	if err != nil {
 		return err
 	}
 	gh := sls_common.GenericHardware{}
-	gh.Xname = base.NormalizeHMSCompID(xname)
+	gh.Xname = xnametypes.NormalizeHMSCompID(xname)
 	return database.DeleteGenericHardware(gh)
 }
 

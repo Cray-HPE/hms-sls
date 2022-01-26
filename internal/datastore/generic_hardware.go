@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -26,9 +26,9 @@ import (
 	"errors"
 	"fmt"
 
-	base "github.com/Cray-HPE/hms-base"
 	"github.com/Cray-HPE/hms-sls/internal/database"
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 )
 
 var InvalidExtraProperties = errors.New("extra properties does not match expected format")
@@ -39,17 +39,17 @@ var UnsupportedType = errors.New("type can not be stored in SLS")
 var UnknownType = errors.New("type is unknown")
 
 func validateXname(xname string) error {
-	xnameType := base.GetHMSType(xname)
-	if xnameType == base.HMSTypeInvalid {
+	xnameType := xnametypes.GetHMSType(xname)
+	if xnameType == xnametypes.HMSTypeInvalid {
 		return InvalidXname
 	}
 
-	invalidTypes := map[base.HMSType]struct{}{
-		base.Partition:      {},
-		base.HMSTypeAll:     {},
-		base.HMSTypeAllComp: {},
-		base.HMSTypeAllSvc:  {},
-		base.HMSTypeInvalid: {},
+	invalidTypes := map[xnametypes.HMSType]struct{}{
+		xnametypes.Partition:      {},
+		xnametypes.HMSTypeAll:     {},
+		xnametypes.HMSTypeAllComp: {},
+		xnametypes.HMSTypeAllSvc:  {},
+		xnametypes.HMSTypeInvalid: {},
 	}
 	_, isInvalid := invalidTypes[xnameType]
 	if isInvalid {
