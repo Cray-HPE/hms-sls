@@ -282,6 +282,34 @@ func SetXname(xname string, obj sls_common.GenericHardware) error {
 }
 
 /*
+UpdateXname updates a specified xname with updated properties
+*/
+func UpdateXname(xname string, obj sls_common.GenericHardware) error {
+	// Setup: make sure all data is clean
+	obj, err := normalizeFields(obj)
+	if err != nil {
+		return err
+	}
+
+	err = validateFields(obj)
+	if err != nil {
+		return err
+	}
+
+	// check if xname exists
+	_, err = database.GetGenericHardwareFromXname(obj.Xname)
+	if err != nil {
+		return err
+	} else {
+		err = database.UpdateGenericHardware(obj)
+	}
+
+	// TODO If this is a connector object, make sure to update the peer (old and new) as well.
+
+	return err
+}
+
+/*
 DeleteXname removes hardware witht he appropriate name from the datastore.
 It handles updating the parent and any peers.
 */

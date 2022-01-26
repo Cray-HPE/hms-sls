@@ -376,6 +376,64 @@ func (suite *DatastoreTestSuite) TestSetXname_okay() {
 	}
 }
 
+func (suite *DatastoreTestSuite) TestUpdateXname_okay() {
+	initial_obj := sls_common.GenericHardware{
+		Parent:             "x7",
+		Children:           []string{},
+		Xname:              "x7c07",
+		Type:               sls_common.Chassis,
+		Class:              sls_common.ClassMountain,
+		TypeString:         xnametypes.Chassis,
+		ExtraPropertiesRaw: nil,
+	}
+
+	updated_obj := sls_common.GenericHardware{
+		Parent:             "x7",
+		Children:           []string{},
+		Xname:              "x7c07",
+		Type:               sls_common.Chassis,
+		Class:              sls_common.ClassHill,
+		TypeString:         xnametypes.Chassis,
+		ExtraPropertiesRaw: nil,
+	}
+
+	err := ConfigureStorage("etcd", "mem:", []string{})
+	if err != nil {
+		suite.FailNowf("Unexpected error configuring storage", "err: %s", err)
+	}
+
+	err = UpdateXname("x007c0007", initial_obj)
+	if err == nil {
+		suite.FailNowf("Expected error updating object that does not exist", "err: %s", err)
+	}
+
+	err = SetXname("x007c0007", initial_obj)
+	if err != nil {
+		suite.FailNowf("Unexpected error creating initial object", "err: %s", err)
+	}
+
+	err = UpdateXname("x007c0007", updated_obj)
+	if err != nil {
+		suite.FailNowf("Unexpected error updating object", "err: %s", err)
+	}
+
+	res, err := GetXname("x7c07")
+	if err != nil {
+		suite.FailNowf("Unexpected error fetching data", "err: %s", err)
+	}
+
+	if res == nil {
+		suite.FailNowf("Was not able to retrieve stored data", "")
+	}
+
+	log.Printf("Result: %v", res)
+
+	if reflect.DeepEqual(updated_obj, *res) {
+		suite.FailNowf("Retrieved xname not as expected", "Expected \n%v, got \n%v",
+			updated_obj, res)
+	}
+}
+
 func (suite *DatastoreTestSuite) Test_DeleteXname() {
 	robj := sls_common.GenericHardware{
 		Parent:     "x0c01",

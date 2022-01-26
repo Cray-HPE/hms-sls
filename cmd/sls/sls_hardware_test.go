@@ -1144,23 +1144,13 @@ func Test_doHardwarePost(t *testing.T) {
 	t.Log("Testing PUT on non-existing component.")
 
 	err = doSet(putnewcomp)
-	if err != nil {
-		t.Error("ERROR creating http PUT request:", err)
+	if err == nil {
+		t.Error("ERROR PUT of non-existing component did not fail")
 	}
 
-	jdata, err = doGet(putnewcomp)
-	if err != nil {
-		t.Error(err)
-	}
-
-	jexp, err = plMassage(putnewcomp.getHWData)
-	if err != nil {
-		t.Error(err)
-	}
-
-	cmperr = hwCompare(jexp, jdata)
-	if cmperr != nil {
-		t.Errorf("Data miscompare in PUT Replace test '%v'\n", cmperr)
+	_, err = doGet(putnewcomp)
+	if err == nil {
+		t.Errorf("ERROR Expected component to still not exist after PUT '%v'\n", putnewcomp)
 	}
 
 	//Test POST on existing component
@@ -1408,79 +1398,97 @@ func (suite *HardwareTestSuite) TestVerifyPOSTAllTypes() {
 }
 
 func (suite *HardwareTestSuite) TestVerifyPUTAllTypes() {
-	// TODO CASMHMS-4670 PUT will create an object if it does not already exist
-	// Right now this test expliots that fact, but when CASMHMS-4670 is addressed this test needs to
-	// be updated.
-
 	// Verify the hardware search endpoint accepts the following SLS types via the type query param
 	tests := []string{
 
-		"d0",       // "comptype_cdu",                // dD
-		"d0w1",     // "comptype_cdu_mgmt_switch",    // dDwW
-		"x1d1",     // "comptype_cab_cdu",            // xXdD
-		"x1m1p0",   // "comptype_cab_pdu",            // xXmMpP
-		"x1m1i1",   // "comptype_cab_pdu_nic",        // xXmMiI
-		"x1m1p0j1", // "comptype_cab_pdu_outlet",     // xXmMpPjJ DEPRECATED
-		"x1m1p0v1", // "comptype_cab_pdu_pwr_connector",     // xXmMpPvV
+		"d2",       // "comptype_cdu",                // dD
+		"d2w1",     // "comptype_cdu_mgmt_switch",    // dDwW
+		"x2d1",     // "comptype_cab_cdu",            // xXdD
+		"x2m1p0",   // "comptype_cab_pdu",            // xXmMpP
+		"x2m1i1",   // "comptype_cab_pdu_nic",        // xXmMiI
+		"x2m1p0j1", // "comptype_cab_pdu_outlet",     // xXmMpPjJ DEPRECATED
+		"x2m1p0v1", // "comptype_cab_pdu_pwr_connector",     // xXmMpPvV
 
-		"x1",           // "comptype_cabinet",                 // xX
-		"x1c1",         // "comptype_chassis",                 // xXcC
-		"x1c1b0",       // "comptype_chassis_bmc",             // xXcCbB
-		"x1c1t0",       // "comptype_cmm_rectifier",           // xXcCtT
-		"x1c1f0",       // "comptype_cmm_fpga",                // xXcCfF
-		"x1e1",         // "comptype_cec",                     // xXeE
-		"x1c1s1",       // "comptype_compmod",                 // xXcCsS
-		"x1c1r1",       // "comptype_rtrmod",                  // xXcCrR
-		"x1c1s1b1",     // "comptype_ncard",                   // xXcCsSbB
-		"x1c1s1b1i1",   // "comptype_bmc_nic",                 // xXcCsSbBiI
-		"x1c1s1e1",     // "comptype_node_enclosure",          // xXcCsSeE
-		"x1c1s1v1",     // "comptype_compmod_power_connector", // xXcCsSvV
-		"x1c1s1b1n1",   // "comptype_node",                    // xXcCsSbBnN
-		"x1c1s1b1n1p1", // "comptype_node_processor",          // xXcCsSbBnNpP
-		"x1c1s1b1n1i1", // "comptype_node_nic",                // xXcCsSbBnNiI
-		"x1c1s1b1n1h1", // "comptype_node_hsn_nic",            // xXcCsSbBnNhH
-		"x1c1s1b1n1d1", // "comptype_dimm",                    // xXcCsSbBnNdD
-		"x1c1s1b1n1a1", // "comptype_node_accel",              // xXcCsSbBnNaA
-		"x1c1s1b1f0",   // "comptype_node_fpga",               // xXcCsSbBfF
-		"x1c1r1a1",     // "comptype_hsn_asic",                // xXcCrRaA
-		"x1c1r1f1",     // "comptype_rtr_fpga",                // xXcCrRfF
-		"x1c1r1t1f1",   // "comptype_rtr_tor_fpga",            // xXcCrRtTfF
+		"x2",           // "comptype_cabinet",                 // xX
+		"x2c1",         // "comptype_chassis",                 // xXcC
+		"x2c1b0",       // "comptype_chassis_bmc",             // xXcCbB
+		"x2c1t0",       // "comptype_cmm_rectifier",           // xXcCtT
+		"x2c1f0",       // "comptype_cmm_fpga",                // xXcCfF
+		"x2e1",         // "comptype_cec",                     // xXeE
+		"x2c1s1",       // "comptype_compmod",                 // xXcCsS
+		"x2c1r1",       // "comptype_rtrmod",                  // xXcCrR
+		"x2c1s1b1",     // "comptype_ncard",                   // xXcCsSbB
+		"x2c1s1b1i1",   // "comptype_bmc_nic",                 // xXcCsSbBiI
+		"x2c1s1e1",     // "comptype_node_enclosure",          // xXcCsSeE
+		"x2c1s1v1",     // "comptype_compmod_power_connector", // xXcCsSvV
+		"x2c1s1b1n1",   // "comptype_node",                    // xXcCsSbBnN
+		"x2c1s1b1n1p1", // "comptype_node_processor",          // xXcCsSbBnNpP
+		"x2c1s1b1n1i1", // "comptype_node_nic",                // xXcCsSbBnNiI
+		"x2c1s1b1n1h1", // "comptype_node_hsn_nic",            // xXcCsSbBnNhH
+		"x2c1s1b1n1d1", // "comptype_dimm",                    // xXcCsSbBnNdD
+		"x2c1s1b1n1a1", // "comptype_node_accel",              // xXcCsSbBnNaA
+		"x2c1s1b1f0",   // "comptype_node_fpga",               // xXcCsSbBfF
+		"x2c1r1a1",     // "comptype_hsn_asic",                // xXcCrRaA
+		"x2c1r1f1",     // "comptype_rtr_fpga",                // xXcCrRfF
+		"x2c1r1t1f1",   // "comptype_rtr_tor_fpga",            // xXcCrRtTfF
 
-		"x1c1r1b1",   // "comptype_rtr_bmc",                 // xXcCrRbB
-		"x1c1r1b1i1", // "comptype_rtr_bmc_nic",             // xXcCrRbBiI
+		"x2c1r1b1",   // "comptype_rtr_bmc",                 // xXcCrRbB
+		"x2c1r1b1i1", // "comptype_rtr_bmc_nic",             // xXcCrRbBiI
 
-		"x1c1r1e1",   // "comptype_hsn_board",             // xXcCrReE
-		"x1c1r1a1l1", // "comptype_hsn_link",              // xXcCrRaAlL
-		"x1c1r1j1",   // "comptype_hsn_connector",         // xXcCrRjJ
-		"x1c1r1j1p1", // "comptype_hsn_connector_port",    // xXcCrRjJpP
-		"x1c1w1",     // "comptype_mgmt_switch",           // xXcCwW
-		"x1c1w1j1",   // "comptype_mgmt_switch_connector", // xXcCwWjJ
-		"x1c1h1s1",   // "comptype_hl_switch",             // xXcChHsS
+		"x2c1r1e1",   // "comptype_hsn_board",             // xXcCrReE
+		"x2c1r1a1l1", // "comptype_hsn_link",              // xXcCrRaAlL
+		"x2c1r1j1",   // "comptype_hsn_connector",         // xXcCrRjJ
+		"x2c1r1j1p1", // "comptype_hsn_connector_port",    // xXcCrRjJpP
+		"x2c1w1",     // "comptype_mgmt_switch",           // xXcCwW
+		"x2c1w1j1",   // "comptype_mgmt_switch_connector", // xXcCwWjJ
+		"x2c1h1s1",   // "comptype_hl_switch",             // xXcChHsS
 	}
 
-	for _, xname := range tests {
+	fmt.Println("Setup for TestVerifyPUTAllTypes. Creating GenericHardware objects")
+	components := make([]sls_common.GenericHardware, len(tests))
+	for i, xname := range tests {
 		suite.True(xnametypes.IsHMSCompIDValid(xname), xname)
 		hmsType := xnametypes.GetHMSType(xname)
 		slsType := sls_common.HMSTypeToHMSStringType(hmsType)
 
 		suite.NotEqual("INVALID", slsType)
 
-		h := sls_common.GenericHardware{
+		components[i] = sls_common.GenericHardware{
 			Parent:     xnametypes.GetHMSCompParent(xname),
 			Xname:      xname,
 			Class:      sls_common.ClassRiver,
 			Type:       slsType,
 			TypeString: hmsType,
 		}
+	}
 
-		payload, err := json.Marshal(h)
+	fmt.Println("Setup for TestVerifyPUTAllTypes. Creating components:")
+	for _, component := range components {
+		payload, err := json.Marshal(component)
 		suite.NoError(err)
 
 		suite.T().Log(string(payload))
 
-		putURL := hwURLBase + "/" + xname
+		req, preqerr := http.NewRequest("POST", hwURLBase, bytes.NewBuffer(payload))
+		suite.NoError(preqerr, "creating http POST request as setup for PUT testing")
+
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, req)
+
+		//Check response code
+		suite.Equal(http.StatusOK, response.Code, "Failure in setup for PUT testing. Response: %s", response.Body.String())
+	}
+
+	fmt.Println("TestVerifyPUTAllTypes PUT calls.")
+	for _, component := range components {
+		payload, err := json.Marshal(component)
+		suite.NoError(err)
+
+		suite.T().Log(string(payload))
+
+		putURL := hwURLBase + "/" + component.Xname
 		req, preqerr := http.NewRequest("PUT", putURL, bytes.NewBuffer(payload))
-		suite.NoError(preqerr, "creating http POST request")
+		suite.NoError(preqerr, "creating http PUT request")
 
 		response := httptest.NewRecorder()
 		router.ServeHTTP(response, req)

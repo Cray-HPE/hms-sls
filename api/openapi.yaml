@@ -366,8 +366,8 @@ paths:
                 $ref: '#/components/schemas/hardware'
         400:
           description: "Bad request.  See body for details"
-        409:
-          description: "Conflict.  The requested resource already exists"
+        404:
+          description: "Not found. The requested resource does not exist. Use POST to create it."
     delete:
       tags: ["hardware"]
       summary: "Delete the xname"

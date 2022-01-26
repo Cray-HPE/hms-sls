@@ -336,8 +336,12 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 
 	// Write back to the DB
 
-	err = datastore.SetXname(cmp.Xname, cmp)
-	if err != nil {
+	err = datastore.UpdateXname(cmp.Xname, cmp)
+	if err == database.NoSuch {
+		log.Printf("ERROR, Component does not exist and as such cannot be update. xname: '%s'\n", cmp.Xname)
+		sendJsonRsp(w, http.StatusNotFound, "Error component does not exist. Use POST to create it.")
+		return
+	} else if err != nil {
 		log.Println("ERROR updating DB:", err)
 		sendJsonRsp(w, http.StatusInternalServerError, "DB update failed")
 		return
