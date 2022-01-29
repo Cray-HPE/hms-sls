@@ -479,7 +479,7 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 				pdet := base.NewProblemDetails("about: blank",
 					"Internal Server Error",
 					"Failed to search hardware in DB. ExtraProperties search does not include field.",
-					r.URL.Path, http.StatusInternalServerError)
+					r.URL.Path, http.StatusBadRequest)
 				base.SendProblemDetails(w, pdet, 0)
 				return
 			}
@@ -495,17 +495,25 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 
 	hardware.ExtraPropertiesRaw = properties
 
-	returnedHardware, err := datastore.SearchGenericHardware(hardware)
-	if err == database.NoSuch {
-		log.Println("ERROR: ", err)
+	returnedHardware, validationErr, dbErr := datastore.SearchGenericHardware(hardware)
+	if dbErr == database.NoSuch {
+		log.Println("ERROR: ", dbErr)
 		pdet := base.NewProblemDetails("about: blank",
 			"Not Found",
 			"Hardware not found in DB",
 			r.URL.Path, http.StatusNotFound)
 		base.SendProblemDetails(w, pdet, 0)
 		return
-	} else if err != nil {
-		log.Println("ERROR: Failed to search for hardware:", err)
+	} else if validationErr != nil {
+		log.Println("ERROR: Bad search request for hardware:", validationErr)
+		pdet := base.NewProblemDetails("about: blank",
+			"Bad Request",
+			validationErr.Error(),
+			r.URL.Path, http.StatusBadRequest)
+		base.SendProblemDetails(w, pdet, 0)
+		return
+	} else if dbErr != nil {
+		log.Println("ERROR: Failed to search for hardware:", dbErr)
 		pdet := base.NewProblemDetails("about: blank",
 			"Internal Server Error",
 			"Failed to search hardware in DB",

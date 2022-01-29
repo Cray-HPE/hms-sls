@@ -147,13 +147,13 @@ func ReplaceGenericHardware(hardware []sls_common.GenericHardware) error {
 	return database.ReplaceAllGenericHardware(hardware)
 }
 
-func SearchGenericHardware(searchHardware sls_common.GenericHardware) (returnHardware []sls_common.GenericHardware, err error) {
+func SearchGenericHardware(searchHardware sls_common.GenericHardware) (returnHardware []sls_common.GenericHardware, validationErr error, dbErr error) {
 	conditions := make(map[string]string)
 
 	// Build conditions map.
 	if searchHardware.Xname != "" {
-		err = validateXname(searchHardware.Xname)
-		if err != nil {
+		validationErr = validateXname(searchHardware.Xname)
+		if validationErr != nil {
 			return
 		}
 
@@ -162,23 +162,23 @@ func SearchGenericHardware(searchHardware sls_common.GenericHardware) (returnHar
 	if searchHardware.Parent != "" {
 		parentErr := validateXname(searchHardware.Parent)
 		if parentErr != nil {
-			err = fmt.Errorf("invalid parent: %s", parentErr)
+			validationErr = fmt.Errorf("invalid parent: %s", parentErr)
 			return
 		}
 
 		conditions["parent"] = searchHardware.Parent
 	}
 	if searchHardware.Type != "" {
-		err = validateType(searchHardware.Type)
-		if err != nil {
+		validationErr = validateType(searchHardware.Type)
+		if validationErr != nil {
 			return
 		}
 
 		conditions["comp_type"] = string(searchHardware.Type)
 	}
 	if searchHardware.Class != "" {
-		err = validateClass(searchHardware.Class)
-		if err != nil {
+		validationErr = validateClass(searchHardware.Class)
+		if validationErr != nil {
 			return
 		}
 
@@ -187,11 +187,16 @@ func SearchGenericHardware(searchHardware sls_common.GenericHardware) (returnHar
 
 	propertiesMap, ok := searchHardware.ExtraPropertiesRaw.(map[string]interface{})
 	if !ok {
-		err = InvalidExtraProperties
+		validationErr = InvalidExtraProperties
 		return
 	}
 
-	returnHardware, err = database.SearchGenericHardware(conditions, propertiesMap)
+	if len(conditions) == 0 && len(propertiesMap) == 0 {
+		validationErr = fmt.Errorf("no conditions/properties with which to search")
+		return
+	}
+
+	returnHardware, dbErr = database.SearchGenericHardware(conditions, propertiesMap)
 
 	return
 }
