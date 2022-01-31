@@ -477,8 +477,8 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 			if len(keyParts) != 2 || keyParts[1] == "" {
 				log.Println("ERROR: ExtraProperties search does not include field")
 				pdet := base.NewProblemDetails("about: blank",
-					"Internal Server Error",
-					"Failed to search hardware in DB. ExtraProperties search does not include field.",
+					"Bad Request",
+					"ExtraProperties search did not include the field name. The ExtraProperties query should be of form: extra_properties.fieldname=value",
 					r.URL.Path, http.StatusBadRequest)
 				base.SendProblemDetails(w, pdet, 0)
 				return
