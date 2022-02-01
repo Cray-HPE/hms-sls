@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,8 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"github.com/Cray-HPE/hms-sls/pkg/sls-common"
+
+	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
 
 	compcredentials "github.com/Cray-HPE/hms-compcredentials"
 	"github.com/Cray-HPE/hms-sls/internal/database"
@@ -645,8 +646,7 @@ func sendJsonResponse(w http.ResponseWriter, ecode int, message string) {
 	}
 }
 
-func sendJsonCompRsp(w http.ResponseWriter, comp sls_common.GenericHardware) {
-	http_code := 200
+func sendJsonCompRsp(w http.ResponseWriter, comp sls_common.GenericHardware, http_code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http_code)
 	err := json.NewEncoder(w).Encode(comp)
