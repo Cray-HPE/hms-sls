@@ -471,14 +471,14 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 	//   `extra_properties.`
 	// And add each of them to the map for searching.
 	for key, value := range r.Form {
-		if strings.HasPrefix(key, "extra_properties.") {
+		if strings.HasPrefix(key, "extra_properties.") || key == "extra_properties" {
 			// What comes after the period is the name of the property.
 			keyParts := strings.SplitN(key, ".", 2)
 			if len(keyParts) != 2 || keyParts[1] == "" {
 				log.Println("ERROR: ExtraProperties search does not include field")
 				pdet := base.NewProblemDetails("about: blank",
 					"Bad Request",
-					"ExtraProperties search did not include the field name. The ExtraProperties query should be of form: extra_properties.fieldname=value",
+					"ExtraProperties search did not include the field name. The ExtraProperties query should be of the form: extra_properties.{fieldname}={value}",
 					r.URL.Path, http.StatusBadRequest)
 				base.SendProblemDetails(w, pdet, 0)
 				return
