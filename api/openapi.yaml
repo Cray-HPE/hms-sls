@@ -454,6 +454,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/hardware'
+        400:
+          description: "Bad request. See body for details."
+        404:
+          description: "Search did not find any matching hardware."
+        500:
+          description: "An unexpected error occurred. See body for details."
   /search/networks:
     get:
       tags: ["search"]
@@ -495,7 +501,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/network'
-
   /networks:
     get:
       tags: ["network"]

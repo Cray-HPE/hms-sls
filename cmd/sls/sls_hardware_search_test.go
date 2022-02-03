@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -34,9 +34,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
 	base "github.com/Cray-HPE/hms-base"
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -231,8 +231,7 @@ func (suite *HardwareSearchTestSuite) TestSearchSpecialTypes() {
 
 		suite.T().Logf("Response: %d", response.Code)
 
-		// TODO CASMHMS-4671 - This feels like it should be a 400 Bad Request instead
-		suite.Equal(http.StatusInternalServerError, response.Code, "Bad response in GET op")
+		suite.Equal(http.StatusBadRequest, response.Code, "Bad response in GET op")
 	}
 }
 
@@ -342,7 +341,7 @@ func (suite *HardwareSearchTestSuite) TestSearchXname() {
 	}, {
 		parent:         "foo",
 		xnames:         []string{},
-		expectedStatus: http.StatusInternalServerError, // TODO CASMHMS-4671 This should probably get a 400 status code
+		expectedStatus: http.StatusBadRequest,
 	}}
 
 	for _, test := range tests {

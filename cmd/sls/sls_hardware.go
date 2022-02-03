@@ -471,15 +471,15 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 	//   `extra_properties.`
 	// And add each of them to the map for searching.
 	for key, value := range r.Form {
-		if strings.HasPrefix(key, "extra_properties.") {
+		if strings.HasPrefix(key, "extra_properties.") || key == "extra_properties" {
 			// What comes after the period is the name of the property.
 			keyParts := strings.SplitN(key, ".", 2)
 			if len(keyParts) != 2 || keyParts[1] == "" {
 				log.Println("ERROR: ExtraProperties search does not include field")
 				pdet := base.NewProblemDetails("about: blank",
-					"Internal Server Error",
-					"Failed to search hardware in DB. ExtraProperties search does not include field.",
-					r.URL.Path, http.StatusInternalServerError)
+					"Bad Request",
+					"ExtraProperties search did not include the field name. The ExtraProperties query should be of the form: extra_properties.{fieldname}={value}",
+					r.URL.Path, http.StatusBadRequest)
 				base.SendProblemDetails(w, pdet, 0)
 				return
 			}
@@ -495,17 +495,25 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 
 	hardware.ExtraPropertiesRaw = properties
 
-	returnedHardware, err := datastore.SearchGenericHardware(hardware)
-	if err == database.NoSuch {
-		log.Println("ERROR: ", err)
+	returnedHardware, validationErr, dbErr := datastore.SearchGenericHardware(hardware)
+	if dbErr == database.NoSuch {
+		log.Println("ERROR: ", dbErr)
 		pdet := base.NewProblemDetails("about: blank",
 			"Not Found",
 			"Hardware not found in DB",
 			r.URL.Path, http.StatusNotFound)
 		base.SendProblemDetails(w, pdet, 0)
 		return
-	} else if err != nil {
-		log.Println("ERROR: Failed to search for hardware:", err)
+	} else if validationErr != nil {
+		log.Println("ERROR: Bad search request for hardware:", validationErr)
+		pdet := base.NewProblemDetails("about: blank",
+			"Bad Request",
+			validationErr.Error(),
+			r.URL.Path, http.StatusBadRequest)
+		base.SendProblemDetails(w, pdet, 0)
+		return
+	} else if dbErr != nil {
+		log.Println("ERROR: Failed to search for hardware:", dbErr)
 		pdet := base.NewProblemDetails("about: blank",
 			"Internal Server Error",
 			"Failed to search hardware in DB",
