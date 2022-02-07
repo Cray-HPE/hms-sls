@@ -56,7 +56,7 @@ const (
 var hmsHWClassMap = map[string]CabinetType{
 	"river":    ClassRiver,
 	"mountain": ClassMountain,
-	"Hill":     ClassHill,
+	"hill":     ClassHill,
 }
 
 /*

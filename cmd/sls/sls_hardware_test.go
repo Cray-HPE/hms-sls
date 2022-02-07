@@ -45,6 +45,7 @@ type testData struct {
 	getURL    string
 	setString []byte
 	getHWData sls_common.GenericHardware
+	httpCode  int
 }
 
 var router *mux.Router
@@ -60,7 +61,7 @@ var payloads = []testData{
 	testData{"POST",
 		hwURLBase,
 		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		json.RawMessage(`{"Xname":"x0c0s0b0n0","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
 		sls_common.GenericHardware{"x0c0s0b0",
 			nil,
 			"x0c0s0b0n0",
@@ -72,6 +73,7 @@ var payloads = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -88,6 +90,7 @@ var payloads = []testData{
 			sls_common.ComptypeNode{NID: 1236, Role: "Compute"},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -108,6 +111,7 @@ var payloads = []testData{
 				[]string{}},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -124,6 +128,24 @@ var payloads = []testData{
 			sls_common.ComptypeCompmodPowerConnector{[]string{"x0m0v0", "x0m0v1"}},
 			nil,
 		},
+		http.StatusCreated,
+	},
+	testData{"POST", //test class Hill
+		hwURLBase,
+		hwURLBase + "/x0c1s0",
+		json.RawMessage(`{"Xname":"x0c1s0","Class":"Hill","ExtraProperties":{"PoweredBy":["x0m0v0","x0m0v1"]}}`),
+		sls_common.GenericHardware{"x0c1",
+			nil,
+			"x0c1s0",
+			sls_common.ComputeModule,
+			"Hill",
+			"ComputeModule",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeCompmodPowerConnector{[]string{"x0m0v0", "x0m0v1"}},
+			nil,
+		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -140,6 +162,7 @@ var payloads = []testData{
 			sls_common.ComptypeNode{NID: 1240, Role: "Compute"},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -156,6 +179,7 @@ var payloads = []testData{
 			sls_common.ComptypeNode{NID: 1237, Role: "Compute"},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -176,6 +200,7 @@ var payloads = []testData{
 				[]string{}},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -192,6 +217,7 @@ var payloads = []testData{
 			sls_common.ComptypeCompmodPowerConnector{[]string{"x0m1v1", "x0m1v2"}},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -208,6 +234,7 @@ var payloads = []testData{
 			nil,
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -224,6 +251,7 @@ var payloads = []testData{
 			sls_common.ComptypeCompmodPowerConnector{[]string{"x2m0v0", "x2m0v1"}},
 			nil,
 		},
+		http.StatusCreated,
 	},
 
 	//Hierarchy stuff
@@ -242,6 +270,7 @@ var payloads = []testData{
 			sls_common.ComptypeCompmodPowerConnector{[]string{"x3m0v0", "x3m0v1"}},
 			nil,
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -258,6 +287,7 @@ var payloads = []testData{
 				"vault://root_pw",
 				[]string{}},
 		},
+		http.StatusCreated,
 	},
 	testData{"POST",
 		hwURLBase,
@@ -274,6 +304,110 @@ var payloads = []testData{
 			sls_common.ComptypeNode{NID: 3303, Role: "Compute"},
 			nil,
 		},
+		http.StatusCreated,
+	},
+	// POST requests to used to fail when more fields were required
+	testData{"POST", //No parent
+		hwURLBase,
+		hwURLBase + "/x0c1s0b0n0",
+		json.RawMessage(`{"Parent":"","Xname":"x0c1s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c1s0b0",
+			nil,
+			"x0c1s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusCreated,
+	},
+	testData{"POST", //Invalid parent
+		hwURLBase,
+		hwURLBase + "/x0c2s0b0n0",
+		json.RawMessage(`{"Parent":"z0c0s0b0","Xname":"x0c2s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c2s0b0",
+			nil,
+			"x0c2s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusCreated,
+	},
+	testData{"POST", //No type
+		hwURLBase,
+		hwURLBase + "/x0c3s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c3s0b0n0","Type":"","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c3s0b0",
+			nil,
+			"x0c3s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusCreated,
+	},
+	testData{"POST", //Invalid type
+		hwURLBase,
+		hwURLBase + "/x0c4s0b0n0",
+		json.RawMessage(`{"Parent":"x0c4s0b0","Xname":"x0c4s0b0n0","Type":"zomptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c4s0b0",
+			nil,
+			"x0c4s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusCreated,
+	},
+	testData{"POST", // No typestring
+		hwURLBase,
+		hwURLBase + "/x0c5s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c5s0b0n0","Type":"comptype_node","TypeString":"","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c5s0b0",
+			nil,
+			"x0c5s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusCreated,
+	},
+	testData{"POST", //Invalid typestring
+		hwURLBase,
+		hwURLBase + "/x0c6s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c6s0b0n0","Type":"comptype_node","TypeString":"Zode","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c6s0b0",
+			nil,
+			"x0c6s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusCreated,
 	},
 }
 
@@ -282,7 +416,7 @@ var payloads = []testData{
 var putrpl = testData{"PUT",
 	hwURLBase + "/x0c0s1b0n0",
 	hwURLBase + "/x0c0s1b0n0",
-	json.RawMessage(`{"Parent":"x0c0s1b0","Xname":"x0c0s1b0n0","Type":"comptype_node","TypeString":"Node","Class":"River","ExtraProperties":{"NID":5555,"Role":"Management"}}`),
+	json.RawMessage(`{"Class":"River","ExtraProperties":{"NID":5555,"Role":"Management"}}`),
 	sls_common.GenericHardware{"x0c0s1b0",
 		nil,
 		"x0c0s1b0n0",
@@ -294,6 +428,7 @@ var putrpl = testData{"PUT",
 		sls_common.ComptypeNode{NID: 5555, Role: "Management"},
 		nil,
 	},
+	http.StatusOK,
 }
 
 // Payload for component creation via PUT, happy path
@@ -313,6 +448,7 @@ var putnewcomp = testData{"PUT",
 		sls_common.ComptypeNode{NID: 7777, Role: "Management"},
 		nil,
 	},
+	http.StatusCreated,
 }
 
 // Payloads for POST error tests
@@ -333,6 +469,7 @@ var posterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusBadRequest,
 	},
 	testData{"POST", //Invalid XName
 		hwURLBase,
@@ -349,38 +486,7 @@ var posterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
-	},
-	testData{"POST", //No parent
-		hwURLBase,
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"POST", //Invalid parent
-		hwURLBase,
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"z0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
+		http.StatusBadRequest,
 	},
 	testData{"POST", //No class
 		hwURLBase,
@@ -397,6 +503,7 @@ var posterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusBadRequest,
 	},
 	testData{"POST", //Invalid class
 		hwURLBase,
@@ -413,70 +520,7 @@ var posterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
-	},
-	testData{"POST", //No type
-		hwURLBase,
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"POST", //Invalid type
-		hwURLBase,
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"zomptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"POST", // No typestring
-		hwURLBase,
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"POST", //Invalid typestring
-		hwURLBase,
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Zode","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
+		http.StatusBadRequest,
 	},
 	testData{"POST", //bad JSON
 		hwURLBase,
@@ -493,6 +537,7 @@ var posterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusBadRequest,
 	},
 }
 
@@ -514,6 +559,199 @@ var geterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusBadRequest,
+	},
+}
+
+// Payloads for PUT success tests using payloads that used to fail
+
+var putPayloads = []testData{
+	testData{"PUT", // Create new object using PUT
+		hwURLBase + "/x8c0s0b0n0",
+		hwURLBase + "/x8c0s0b0n0",
+		json.RawMessage(`{"Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x8c0s0b0",
+			nil,
+			"x8c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusCreated,
+	},
+	testData{"PUT", // Now try the same one again
+		hwURLBase + "/x8c0s0b0n0",
+		hwURLBase + "/x8c0s0b0n0",
+		json.RawMessage(`{"Class":"Mountain","ExtraProperties":{"NID":12345,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x8c0s0b0",
+			nil,
+			"x8c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 12345, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //No xname in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //No parent in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //No type in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //No typestring in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //xname in URL != xname in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n1","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //Invalid parent in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"z0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //Invalid type in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"zomptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //Invalid typestring in payload
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Zode","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
+	},
+	testData{"PUT", //type != typestring
+		hwURLBase + "/x0c0s0b0n0",
+		hwURLBase + "/x0c0s0b0n0",
+		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"NodeBMC","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
+		sls_common.GenericHardware{"x0c0s0b0",
+			nil,
+			"x0c0s0b0n0",
+			sls_common.Node,
+			"Mountain",
+			"Node",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
+			nil,
+		},
+		http.StatusOK,
 	},
 }
 
@@ -535,70 +773,7 @@ var puterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
-	},
-	testData{"PUT", //No xname in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"PUT", //No parent in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"PUT", //No type in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"PUT", //No typestring in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
+		http.StatusBadRequest,
 	},
 	testData{"PUT", //No class in payload
 		hwURLBase + "/x0c0s0b0n0",
@@ -615,70 +790,7 @@ var puterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
-	},
-	testData{"PUT", //xname in URL != xname in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n1","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"PUT", //Invalid parent in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"z0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"PUT", //Invalid type in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"zomptype_node","TypeString":"Node","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
-	},
-	testData{"PUT", //Invalid typestring in payload
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"Zode","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
+		http.StatusBadRequest,
 	},
 	testData{"PUT", //Invalid class in payload
 		hwURLBase + "/x0c0s0b0n0",
@@ -695,6 +807,7 @@ var puterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusBadRequest,
 	},
 	testData{"PUT", //Bad JSON
 		hwURLBase + "/x0c0s0b0n0",
@@ -711,22 +824,7 @@ var puterrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
-	},
-	testData{"PUT", //type != typestring
-		hwURLBase + "/x0c0s0b0n0",
-		hwURLBase + "/x0c0s0b0n0",
-		json.RawMessage(`{"Parent":"x0c0s0b0","Xname":"x0c0s0b0n0","Type":"comptype_node","TypeString":"NodeBMC","Class":"Mountain","ExtraProperties":{"NID":1234,"Role":"Compute"}}`),
-		sls_common.GenericHardware{"x0c0s0b0",
-			nil,
-			"x0c0s0b0n0",
-			sls_common.Node,
-			"Mountain",
-			"Node",
-			0,
-			"2014-07-16 20:55:46 +0000 UTC",
-			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
-			nil,
-		},
+		http.StatusBadRequest,
 	},
 }
 
@@ -748,6 +846,7 @@ var delerrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusBadRequest,
 	},
 	testData{"DELETE", //non-existent component xname in URL
 		hwURLBase + "/x9c0s0b0n0",
@@ -764,6 +863,7 @@ var delerrs = []testData{
 			sls_common.ComptypeNode{NID: 1234, Role: "Compute"},
 			nil,
 		},
+		http.StatusNotFound,
 	},
 }
 
@@ -899,12 +999,12 @@ func dbInit() {
 
 //Handles POST/PUT/DELETE
 
-func doSet(pl testData) error {
+func doSet(pl testData) (error, int) {
 	fmt.Println(string(pl.setString))
 	preq, preqerr := http.NewRequest(pl.op, pl.setURL,
 		bytes.NewBuffer(pl.setString))
 	if preqerr != nil {
-		return fmt.Errorf("ERROR creating http POST request: %v", preqerr)
+		return fmt.Errorf("ERROR creating http POST request: %v", preqerr), 0
 	}
 
 	pw := httptest.NewRecorder()
@@ -912,12 +1012,15 @@ func doSet(pl testData) error {
 
 	//Check response code
 
-	if pw.Code != http.StatusOK {
-		return fmt.Errorf("ERROR response in %s operation: %d/%s",
-			pl.op, pw.Code, http.StatusText(pw.Code))
+	//if pw.Code != pl.httpCode {
+	if pw.Code != http.StatusOK && pw.Code != http.StatusCreated {
+		return fmt.Errorf(
+				"ERROR response in %s operation: %d/%s",
+				pl.op, pw.Code, http.StatusText(pw.Code)),
+			pw.Code
 	}
 
-	return nil
+	return nil, pw.Code
 }
 
 func doGet(pl testData) (sls_common.GenericHardware, error) {
@@ -974,6 +1077,17 @@ func findTest(xname string) *testData {
 	return nil
 }
 
+func logTestContext(t *testing.T, description string, data testData) {
+	t.Logf(
+		"Test context for: %s\n"+
+			"    setUrl: %s\n"+
+			"    getUrl: %s\n"+
+			"    setString: %s\n"+
+			"    HWData: %v\n",
+		description, data.setURL, data.getURL, data.setString, data.getHWData)
+
+}
+
 func Test_doHardwarePost(t *testing.T) {
 	var jdata, jexp sls_common.GenericHardware
 	var tpl *testData
@@ -993,9 +1107,13 @@ func Test_doHardwarePost(t *testing.T) {
 		t.Logf("POST test %d...\n", ii)
 
 		//Set up and execute the POST/PUT
-		psterr := doSet(pl)
+		psterr, code := doSet(pl)
 		if psterr != nil {
 			t.Errorf("ERROR in POST test %d: %v", ii, psterr)
+			logTestContext(t, "POST test", pl)
+		} else if pl.httpCode != code {
+			t.Errorf("ERROR in POST expected http code %d but got %d", pl.httpCode, code)
+			logTestContext(t, "POST test", pl)
 		}
 
 		//Set up and execute the GET
@@ -1084,9 +1202,14 @@ func Test_doHardwarePost(t *testing.T) {
 	tplcp := *tpl
 	tplcp.op = "DELETE"
 	tplcp.setURL = tplcp.getURL
-	err = doSet(tplcp)
+	tplcp.httpCode = http.StatusOK
+	err, code := doSet(tplcp)
 	if err != nil {
 		t.Errorf("ERROR in DELETE test: %v", err)
+		logTestContext(t, "DELETE test", tplcp)
+	} else if tplcp.httpCode != code {
+		t.Errorf("ERROR in DELETE expected http code %d but got %d", tplcp.httpCode, code)
+		logTestContext(t, "DELETE test", tplcp)
 	}
 
 	//Do a GET to insure the right stuff got deleted
@@ -1119,9 +1242,13 @@ func Test_doHardwarePost(t *testing.T) {
 
 	t.Log("Testing PUT on existing component.")
 
-	err = doSet(putrpl)
+	err, code = doSet(putrpl)
 	if err != nil {
 		t.Error("ERROR creating http PUT request:", err)
+		logTestContext(t, "PUT test", putrpl)
+	} else if putrpl.httpCode != code {
+		t.Errorf("ERROR in PUT expected http code %d but got %d", putrpl.httpCode, code)
+		logTestContext(t, "PUT test", putrpl)
 	}
 
 	jdata, err = doGet(putrpl)
@@ -1143,9 +1270,13 @@ func Test_doHardwarePost(t *testing.T) {
 
 	t.Log("Testing PUT on non-existing component.")
 
-	err = doSet(putnewcomp)
+	err, code = doSet(putnewcomp)
 	if err != nil {
 		t.Error("ERROR creating http PUT request:", err)
+		logTestContext(t, "PUT test", putnewcomp)
+	} else if putnewcomp.httpCode != code {
+		t.Errorf("ERROR in PUT expected http code %d but got %d", putnewcomp.httpCode, code)
+		logTestContext(t, "PUT test", putnewcomp)
 	}
 
 	jdata, err = doGet(putnewcomp)
@@ -1202,9 +1333,13 @@ func Test_HardwarePostErrs(t *testing.T) {
 
 	for ii, pl := range posterrs {
 		t.Logf("POST error test %d...\n", ii)
-		psterr := doSet(pl)
+		psterr, code := doSet(pl)
 		if psterr == nil {
 			t.Errorf("ERROR in POST error test %d: didn't fail!", ii)
+			logTestContext(t, "PUT test", pl)
+		} else if pl.httpCode != code {
+			t.Errorf("ERROR in PUT expected http code %d but got %d", pl.httpCode, code)
+			logTestContext(t, "PUT test", pl)
 		}
 	}
 }
@@ -1223,6 +1358,26 @@ func Test_HardwareGetErrs(t *testing.T) {
 	}
 }
 
+func Test_HardwarePut(t *testing.T) {
+	if router == nil {
+		routes = generateRoutes()
+		router = newRouter(routes)
+	}
+	dbInit()
+
+	for ii, pl := range putPayloads {
+		t.Logf("PUT test %d...\n", ii)
+		err, code := doSet(pl)
+		if err != nil {
+			t.Errorf("ERROR PUT failed %d, %v", ii, err)
+			logTestContext(t, "PUT failed", pl)
+		} else if pl.httpCode != code {
+			t.Errorf("ERROR PUT expected http code %d but got %d", pl.httpCode, code)
+			logTestContext(t, "PUT test", pl)
+		}
+	}
+}
+
 func Test_HardwarePutErrs(t *testing.T) {
 	if router == nil {
 		routes = generateRoutes()
@@ -1232,9 +1387,13 @@ func Test_HardwarePutErrs(t *testing.T) {
 
 	for ii, pl := range puterrs {
 		t.Logf("PUT error test %d...\n", ii)
-		psterr := doSet(pl)
+		psterr, code := doSet(pl)
 		if psterr == nil {
 			t.Errorf("ERROR in PUT error test %d: didn't fail!", ii)
+			logTestContext(t, "PUT error test", pl)
+		} else if pl.httpCode != code {
+			t.Errorf("ERROR PUT expected http code %d but got %d", pl.httpCode, code)
+			logTestContext(t, "PUT test", pl)
 		}
 	}
 }
@@ -1248,9 +1407,13 @@ func Test_HardwareDelErrs(t *testing.T) {
 
 	for ii, pl := range delerrs {
 		t.Logf("DELETE error test %d...\n", ii)
-		psterr := doSet(pl)
+		psterr, code := doSet(pl)
 		if psterr == nil {
 			t.Errorf("ERROR in DELETE error test %d: didn't fail!", ii)
+			logTestContext(t, "DELETE error test", pl)
+		} else if pl.httpCode != code {
+			t.Errorf("ERROR DELETE expected http code %d but got %d", pl.httpCode, code)
+			logTestContext(t, "DELETE test", pl)
 		}
 	}
 }
@@ -1271,9 +1434,13 @@ func Test_doHardwareGetAll(t *testing.T) {
 		t.Logf("Loading payload %d (%s)...\n", ii, pl.getHWData.Xname)
 
 		//Set up and execute the POST/PUT
-		psterr := doSet(pl)
+		psterr, code := doSet(pl)
 		if psterr != nil {
 			t.Errorf("ERROR in POST of payload %d: %v", ii, psterr)
+			logTestContext(t, "POST test setup for Get", pl)
+		} else if pl.httpCode != code {
+			t.Errorf("ERROR in POST expected http code %d but got %d", pl.httpCode, code)
+			logTestContext(t, "POST test setup for Get", pl)
 		}
 	}
 
@@ -1403,7 +1570,7 @@ func (suite *HardwareTestSuite) TestVerifyPOSTAllTypes() {
 		router.ServeHTTP(response, req)
 
 		//Check response code
-		suite.Equal(http.StatusOK, response.Code, "Response: %s", response.Body.String())
+		suite.Equal(http.StatusCreated, response.Code, "Response: %s", response.Body.String())
 	}
 }
 

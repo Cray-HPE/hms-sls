@@ -324,6 +324,8 @@ paths:
           description: "Bad request.  See body for details"
         409:
           description: "Conflict.  The requested resource already exists"
+        500:
+          description: "Unexpected error. See body for details"
   /hardware/{xname}:
     parameters:
       - in: path
@@ -355,7 +357,6 @@ paths:
             schema:
               $ref: '#/components/schemas/hardware'
             example:
-              xname: "x0c1s2b0n1"
               class: "River"
       responses:
         200:
@@ -364,10 +365,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/hardware'
+        201:
+          description: "Created. Item successfully created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/hardware'
         400:
-          description: "Bad request.  See body for details"
-        409:
-          description: "Conflict.  The requested resource already exists"
+          description: "Bad request. See body for details"
+        500:
+          description: "Unexpected error. See body for details"
     delete:
       tags: ["hardware"]
       summary: "Delete the xname"
@@ -860,7 +867,7 @@ components:
             - $ref: '#/components/schemas/hardware_comptype_nodecard'
     hardware:
       type: object
-      required: ["Xname"]
+      required: ["Xname", "Class"]
       properties:
         Parent:
           $ref: '#/components/schemas/xname'

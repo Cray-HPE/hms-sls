@@ -39,11 +39,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// struct for the post /hardware request body
+type postHardwareRequest struct {
+	Xname              string                 `json:"Xname"`
+	Class              sls_common.CabinetType `json:"Class"`
+	ExtraPropertiesRaw interface{}            `json:"ExtraProperties,omitempty"`
+}
+
+// struct for the put /hardware/{xname} request body
+type putHardwareRequest struct {
+	Class              sls_common.CabinetType `json:"Class"`
+	ExtraPropertiesRaw interface{}            `json:"ExtraProperties,omitempty"`
+}
+
 //  /hardware POST API
 
 func doHardwarePost(w http.ResponseWriter, r *http.Request) {
-	var jdata sls_common.GenericHardware
-	var tstr string
+	var jdata postHardwareRequest
 
 	// Decode the JSON to see what we are to post
 
@@ -71,18 +83,10 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 		sendJsonRsp(w, http.StatusBadRequest, "invalid Xname field")
 		return
 	}
-	if xnametypes.GetHMSCompParent(jdata.Xname) != "" {
-		if jdata.Parent == "" {
-			log.Printf("ERROR, request JSON has empty Parent field.\n")
-			sendJsonRsp(w, http.StatusBadRequest, "missing required Parent field")
-			return
-		}
-		if !xnametypes.IsHMSCompIDValid(jdata.Parent) {
-			log.Printf("ERROR, request JSON has invalid Parent field: '%s'.\n",
-				jdata.Parent)
-			sendJsonRsp(w, http.StatusBadRequest, "invalid Parent field")
-			return
-		}
+	if xnametypes.GetHMSCompParent(jdata.Xname) == "" {
+		log.Printf("ERROR, could not determine Parent for xname: %s.\n", jdata.Xname)
+		sendJsonRsp(w, http.StatusInternalServerError, "Could not determine Parent for xname")
+		return
 	}
 
 	if jdata.Class == "" {
@@ -94,30 +98,6 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 		log.Printf("ERROR, request JSON has invalid Class field: '%s'.\n",
 			string(jdata.Class))
 		sendJsonRsp(w, http.StatusBadRequest, "invalid Class field")
-		return
-	}
-	if jdata.Type == "" {
-		log.Printf("ERROR, request JSON has empty Type field.\n")
-		sendJsonRsp(w, http.StatusBadRequest, "missing Type field")
-		return
-	}
-	tstr = string(sls_common.HMSStringTypeToHMSType(jdata.Type))
-	if tstr == string(sls_common.HMSTypeInvalid) {
-		log.Printf("ERROR, request JSON has invalid Type field: '%s'.\n",
-			string(jdata.Type))
-		sendJsonRsp(w, http.StatusBadRequest, "invalid Type field")
-		return
-	}
-	if jdata.TypeString == "" {
-		log.Printf("ERROR, request JSON has empty TypeString field.\n")
-		sendJsonRsp(w, http.StatusBadRequest, "missing TypeString field")
-		return
-	}
-	tstr = string(sls_common.HMSTypeToHMSStringType(jdata.TypeString))
-	if string(tstr) == string(sls_common.HMSTypeInvalid) {
-		log.Printf("ERROR, request JSON has invalid TypeString field: '%s'.\n",
-			string(jdata.TypeString))
-		sendJsonRsp(w, http.StatusBadRequest, "invalid TypeString field")
 		return
 	}
 
@@ -135,16 +115,33 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Write these into the DB
+	// Create GenerricHardware object
+	var hw sls_common.GenericHardware
+	hw.Xname = xnametypes.NormalizeHMSCompID(jdata.Xname)
+	hw.Class = jdata.Class
+	hw.ExtraPropertiesRaw = jdata.ExtraPropertiesRaw
+	hw.Parent = xnametypes.GetHMSCompParent(hw.Xname)
+	hw.TypeString = xnametypes.GetHMSType(hw.Xname)
+	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
 
-	err = datastore.SetXname(jdata.Xname, jdata)
+	// Write these into the DB
+	err, created := datastore.SetXname(hw.Xname, hw)
 	if err != nil {
 		log.Printf("ERROR inserting component '%s' into DB: %s\n", jdata.Xname, err)
 		sendJsonRsp(w, http.StatusInternalServerError, "error inserting object into DB")
 		return
 	}
 
-	sendJsonRsp(w, http.StatusOK, "inserted new entry")
+	http_code := http.StatusCreated
+	if !created {
+		// This is an unlikely race condition where the object was created by something else while
+		// this POST was in progress and the POST ended up modifing an existing entry instead of
+		// creating a new one. This is not a major concern.
+		log.Printf("ERROR object was created while POST was already in progress '%s'\n", jdata.Xname)
+		http_code = http.StatusOK
+	}
+
+	sendJsonRsp(w, http_code, "inserted new entry")
 }
 
 //  /hardware GET API
@@ -199,14 +196,12 @@ func doHardwareObjGet(w http.ResponseWriter, r *http.Request) {
 
 	// Return the HW component.
 
-	sendJsonCompRsp(w, *cmp)
+	sendJsonCompRsp(w, *cmp, http.StatusOK)
 }
 
 //  /hardware/{xname} PUT API
 
 func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
-	var cmp, jdata sls_common.GenericHardware
-
 	// Decode the URL to get the XName
 
 	vars := mux.Vars(r)
@@ -227,6 +222,7 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var jdata putHardwareRequest
 	berr = json.Unmarshal(body, &jdata)
 	if berr != nil {
 		log.Println("ERROR unmarshalling request body:", berr)
@@ -234,21 +230,10 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Insure mandatory fields are present
+	// Insure mandatory fields are present
 
+	// currently Class is the only manditory field
 	errstr := ""
-	if jdata.Xname == "" {
-		errstr = errstr + "Xname "
-	}
-	if jdata.Parent == "" {
-		errstr = errstr + "Parent "
-	}
-	if jdata.Type == "" {
-		errstr = errstr + "Type "
-	}
-	if jdata.TypeString == "" {
-		errstr = errstr + "TypeString "
-	}
 	if jdata.Class == "" {
 		errstr = errstr + "Class "
 	}
@@ -259,91 +244,35 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//If the payload GenericComponent has an Xname, be sure it
-	//matches the one in the URL.
-
-	if strings.ToLower(xname) != strings.ToLower(jdata.Xname) {
-		log.Printf("ERROR, PUT request JSON Xname != URL xname (%s/%s)\n",
-			strings.ToLower(jdata.Xname), strings.ToLower(xname))
-		sendJsonRsp(w, http.StatusBadRequest, "JSON payload xname != request URL xname")
-		return
-	}
-
-	// Check if the component exists in the DB.
-
-	cmpPtr, err := datastore.GetXname(xname)
-	if err != nil {
-		log.Println("ERROR getting component from DB:", err)
-		sendJsonRsp(w, http.StatusInternalServerError, "failed to query DB")
-		return
-	}
-	if cmpPtr != nil {
-		cmp = *cmpPtr
-	} else {
-		cmp = jdata //DB object doesn't exist, so just use the inbound one
-	}
-
-	// Replace the specified data.  Make sure to avoid verboten ones.
-
-	var lxname string
-	var ltype sls_common.HMSStringType
-	var ltypestr xnametypes.HMSType
-
-	lxname = xnametypes.VerifyNormalizeCompID(jdata.Parent)
-	if lxname == "" {
-		log.Printf("ERROR, Invalid parent name '%s'\n", jdata.Parent)
-		sendJsonRsp(w, http.StatusBadRequest, "invalid parent xname")
-		return
-	}
-	cmp.Parent = lxname
-
-	// jdata.Type is really a common.HMSStringType
-	ltypestr = sls_common.HMSStringTypeToHMSType(jdata.Type)
-	if string(ltypestr) == string(sls_common.HMSTypeInvalid) {
-		log.Printf("ERROR, Invalid Type field: '%s'\n", string(jdata.Type))
-		sendJsonRsp(w, http.StatusBadRequest, "invalid component type")
-		return
-	}
-	cmp.Type = jdata.Type
-
-	// jdata.TypeString is really a xnametypes.HMSType
-	ltype = sls_common.HMSTypeToHMSStringType(jdata.TypeString)
-	if ltype == sls_common.HMSTypeInvalid {
-		log.Printf("ERROR, Invalid TypeString: '%s'\n",
-			string(jdata.TypeString))
-		sendJsonRsp(w, http.StatusBadRequest, "invalid component type string")
-		return
-	}
-	if ltype != jdata.Type {
-		log.Printf("ERROR, Mismatched Type and TypeString: '%s'/'%s'\n",
-			string(jdata.Type), string(jdata.TypeString))
-		sendJsonRsp(w, http.StatusBadRequest, "invalid component type string")
-		return
-	}
-	cmp.TypeString = jdata.TypeString
-
 	if !sls_common.IsCabinetTypeValid(jdata.Class) {
 		log.Printf("ERROR, invalid component class '%s'\n",
 			string(jdata.Class))
 		sendJsonRsp(w, http.StatusBadRequest, "invalid component class")
 		return
 	}
-	cmp.Class = jdata.Class
 
-	if jdata.ExtraPropertiesRaw != nil {
-		cmp.ExtraPropertiesRaw = jdata.ExtraPropertiesRaw
-	}
+	// Create GenericHardware
+	var hw sls_common.GenericHardware
+	hw.Xname = xname
+	hw.Class = jdata.Class
+	hw.ExtraPropertiesRaw = jdata.ExtraPropertiesRaw
+	hw.Parent = xnametypes.GetHMSCompParent(xname)
+	hw.TypeString = xnametypes.GetHMSType(xname)
+	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
 
 	// Write back to the DB
-
-	err = datastore.SetXname(cmp.Xname, cmp)
+	err, created := datastore.SetXname(hw.Xname, hw)
 	if err != nil {
 		log.Println("ERROR updating DB:", err)
 		sendJsonRsp(w, http.StatusInternalServerError, "DB update failed")
 		return
 	}
 
-	sendJsonCompRsp(w, cmp)
+	http_code := http.StatusOK
+	if created {
+		http_code = http.StatusCreated
+	}
+	sendJsonCompRsp(w, hw, http_code)
 }
 
 // Recursive function used to get all components of a component

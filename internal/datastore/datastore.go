@@ -254,31 +254,33 @@ func validateFields(obj sls_common.GenericHardware) error {
 /*
 SetXname updates a specified xname with new or updated properties
 */
-func SetXname(xname string, obj sls_common.GenericHardware) error {
+func SetXname(xname string, obj sls_common.GenericHardware) (err error, created bool) {
+	created = false
 	// Setup: make sure all data is clean
-	obj, err := normalizeFields(obj)
+	obj, err = normalizeFields(obj)
 	if err != nil {
-		return err
+		return err, created
 	}
 
 	err = validateFields(obj)
 	if err != nil {
-		return err
+		return err, created
 	}
 
 	// check if xname exists
 	_, err = database.GetGenericHardwareFromXname(obj.Xname)
 	if err != nil && err != database.NoSuch {
-		return err
+		return err, created
 	} else if err == database.NoSuch {
 		err = database.InsertGenericHardware(obj)
+		created = true
 	} else {
 		err = database.UpdateGenericHardware(obj)
 	}
 
 	// TODO If this is a connector object, make sure to update the peer (old and new) as well.
 
-	return err
+	return err, created
 }
 
 /*

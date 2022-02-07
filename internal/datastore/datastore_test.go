@@ -316,7 +316,7 @@ func (suite *DatastoreTestSuite) TestGetXname_okay() {
 		ExtraPropertiesRaw: nil,
 	}
 
-	err := SetXname(robj.Xname, robj)
+	err, _ := SetXname(robj.Xname, robj)
 	if err != nil {
 		suite.FailNowf("Unable to set xname", "err: %s", err)
 	}
@@ -354,7 +354,7 @@ func (suite *DatastoreTestSuite) TestSetXname_okay() {
 		suite.FailNowf("Unexpected error configuring storage", "err: %s", err)
 	}
 
-	err = SetXname("x000c0001", robj)
+	err, _ = SetXname("x000c0001", robj)
 	if err != nil {
 		suite.FailNowf("Unexpected error setting object", "err: %s", err)
 	}
@@ -397,9 +397,12 @@ func (suite *DatastoreTestSuite) Test_DeleteXname() {
 		suite.FailNowf("Unexpected error configuring storage", "err: %s", err)
 	}
 
-	err = SetXname("x000c1w002", robj)
+	err, created := SetXname("x000c1w002", robj)
 	if err != nil {
 		suite.FailNowf("Unexpected error setting object", "err: %s", err)
+	}
+	if !created {
+		suite.FailNow("Expected x000c1w002 to be created instead of updated")
 	}
 
 	_, err = GetXname("x0c1w2")

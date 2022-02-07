@@ -70,7 +70,7 @@ func updateDBVersion() error {
 	pw := httptest.NewRecorder()
 	glbRouter.ServeHTTP(pw, req)
 
-	if pw.Code != http.StatusOK {
+	if pw.Code != http.StatusCreated {
 		return fmt.Errorf("ERROR response in POST operation: %d/%s",
 			pw.Code, http.StatusText(pw.Code))
 	}
@@ -634,7 +634,7 @@ func TestDoDumpstate(t *testing.T) {
 
 	for _, obj := range inputObjs {
 		t.Logf("Inserting test data for %s: %v", obj.Xname, obj)
-		err = datastore.SetXname(obj.Xname, obj)
+		err, _ = datastore.SetXname(obj.Xname, obj)
 		if err != nil {
 			t.Fatalf("Failed ot insert %s: %s", obj.Xname, err)
 		}
