@@ -654,7 +654,10 @@ func TestDoDumpstate(t *testing.T) {
 		"2014-07-16 20:55:46 +0000 UTC",
 		nil,
 	}
-	err = datastore.SetNetwork(sampleNw)
+	validationErr, err := datastore.SetNetwork(sampleNw)
+	if validationErr != nil {
+		t.Fatalf("Failed to set network due to validation error: %s", validationErr)
+	}
 	if err != nil {
 		t.Fatalf("Failed to set network: %s", err)
 	}
