@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,6 @@
 # Author: Mitch Schooler
 # Service: System Layout Service
 
-#TODO
 # HMS test metrics test cases: 4
 # 1. GET /hardware API response code
 # 2. GET /hardware API response body
@@ -54,50 +53,38 @@ stages:
             sequence:
               - type: map
                 required: True
-                #TODO: allows arbitrary additional fields in the map entries
-                allowempty: True
                 mapping:
                   Parent:
                     type: str
                     required: True
-                    pattern: "^[xs].*" 
+                    pattern: "^[xs].*"
+                  Children:
+                    type: seq
+                    required: False
+                    matching: all
+                    sequence:
+                      - type: str
+                        pattern: "^[xs].*"
                   Xname:
                     type: str
                     required: True
-                    pattern: "^x.*" 
+                    pattern: "^[xs].*"
                   Type:
                     type: str
                     required: True
-                    #TODO: may want to use this more general pattern
-                    #pattern: "^comptype_.*" 
-                    enum:
-                      - "comptype_cabinet"
-                      - "comptype_cab_pdu_controller"
-                      - "comptype_chassis_bmc"
-                      - "comptype_hl_switch"
-                      - "comptype_mgmt_switch"
-                      - "comptype_mgmt_switch_connector"
-                      - "comptype_node"
-                      - "comptype_rtr_bmc"
+                    pattern: "^comptype_.*"
                   Class:
                     type: str
                     required: True
-                    #TODO: Mountain?
                     enum:
                       - "River"
+                      - "Mountain"
                   TypeString:
                     type: str
                     required: True
-                    #TODO: more types
-                    enum:
-                      - "CabinetPDUController"
-                      - "Cabinet"
-                      - "ChassisBMC"
-                      - "MgmtHLSwitch"
-                      - "MgmtSwitchConnector"
-                      - "MgmtSwitch"
-                      - "Node"
-                      - "RouterBMC"
+                    #TODO: MgmtHLSwitch not found in this pattern from SLS documentation
+                    #pattern: "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
+                    pattern: "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtHLSwitch$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
                   LastUpdated:
                     type: int
                     required: True
@@ -105,7 +92,236 @@ stages:
                     type: str
                     required: True
                     pattern: "[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}} [0-9]{{2}}:[0-9]{{2}}:[0-9]{{2}}.[0-9]+ \\+[0-9]{{4}} \\+[0-9]{{4}}"
-                  #TODO 
-                  #ExtraProperties:
-                  #TODO
-                  #Children:
+                  ExtraProperties:
+                    type: map
+                    required: False
+                    allowempty: True
+                    mapping:
+                      Aliases:
+                        type: seq
+                        required: False
+                        matching: all
+                        sequence:
+                          - type: str
+                      Brand:
+                        type: str
+                        required: False
+                      IP4addr:
+                        type: str
+                        required: False
+                      Networks:
+                        type: map
+                        required: False
+                        allowempty: True
+                        mapping:
+                          cn:
+                            type: map
+                            required: False
+                            allowempty: True
+                            mapping:
+                              HMN:
+                                type: map
+                                required: False
+                                mapping:
+                                  CIDR:
+                                    type: str
+                                    required: True
+                                  Gateway:
+                                    type: str
+                                    required: True
+                                  VLan:
+                                    type: int
+                                    required: True
+                      NID:
+                        type: int
+                        required: False
+                      NodeNics:
+                        type: seq
+                        required: False
+                        matching: all
+                        sequence:
+                          - type: str
+                            pattern: "^[xs].*"
+                      Password:
+                        type: str
+                        required: False
+                      Role:
+                        type: str
+                        required: False
+                      SNMPAuthPassword:
+                        type: str
+                        required: False
+                      SNMPAuthProtocol:
+                        type: str
+                        required: False
+                      SNMPPrivPassword:
+                        type: str
+                        required: False
+                      SNMPPrivProtocol:
+                        type: str
+                        required: False
+                      SNMPUsername:
+                        type: str
+                        required: False
+                      SubRole:
+                        type: str
+                        required: False
+                      Username:
+                        type: str
+                        required: False
+                      VendorName:
+                        type: str
+                        required: False
+---
+test_name: Verify the hardware resource with a specific xname
+
+stages:
+  - name: Get an xname from the HSM Components collection to use in the next stage
+    request:
+      url: "{base_url}/smd/hsm/v2/State/Components?type=Node"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      save:
+        json:
+          xname: Components[0].ID
+
+  # 1. GET /hardware API response code
+  # 2. GET /hardware API response body
+  - name: Ensure that the SLS hardware for a specific xname can be retrieved
+    request:
+      url: "{base_url}/sls/v1/hardware/{xname}"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              Parent:
+                type: str
+                required: True
+                pattern: "^[xs].*"
+              Children:
+                type: seq
+                required: False
+                matching: all
+                sequence:
+                  - type: str
+                    pattern: "^[xs].*"
+              Xname:
+                type: str
+                required: True
+                pattern: "^[xs].*"
+              Type:
+                type: str
+                required: True
+                pattern: "^comptype_.*"
+              Class:
+                type: str
+                required: True
+                enum:
+                  - "River"
+                  - "Mountain"
+              TypeString:
+                type: str
+                required: True
+                #TODO: MgmtHLSwitch not found in this pattern from SLS documentation
+                #pattern: "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
+                pattern: "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtHLSwitch$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
+              LastUpdated:
+                type: int
+                required: True
+              LastUpdatedTime:
+                type: str
+                required: True
+                pattern: "[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}} [0-9]{{2}}:[0-9]{{2}}:[0-9]{{2}}.[0-9]+ \\+[0-9]{{4}} \\+[0-9]{{4}}"
+              ExtraProperties:
+                type: map
+                required: False
+                allowempty: True
+                mapping:
+                  Aliases:
+                    type: seq
+                    required: False
+                    matching: all
+                    sequence:
+                      - type: str
+                  Brand:
+                    type: str
+                    required: False
+                  IP4addr:
+                    type: str
+                    required: False
+                  Networks:
+                    type: map
+                    required: False
+                    allowempty: True
+                    mapping:
+                      cn:
+                        type: map
+                        required: False
+                        allowempty: True
+                        mapping:
+                          HMN:
+                            type: map
+                            required: False
+                            mapping:
+                              CIDR:
+                                type: str
+                                required: True
+                              Gateway:
+                                type: str
+                                required: True
+                              VLan:
+                                type: int
+                                required: True
+                  NID:
+                    type: int
+                    required: False
+                  NodeNics:
+                    type: seq
+                    required: False
+                    matching: all
+                    sequence:
+                      - type: str
+                        pattern: "^[xs].*"
+                  Password:
+                    type: str
+                    required: False
+                  Role:
+                    type: str
+                    required: False
+                  SNMPAuthPassword:
+                    type: str
+                    required: False
+                  SNMPAuthProtocol:
+                    type: str
+                    required: False
+                  SNMPPrivPassword:
+                    type: str
+                    required: False
+                  SNMPPrivProtocol:
+                    type: str
+                    required: False
+                  SNMPUsername:
+                    type: str
+                    required: False
+                  SubRole:
+                    type: str
+                    required: False
+                  Username:
+                    type: str
+                    required: False
+                  VendorName:
+                    type: str
+                    required: False
