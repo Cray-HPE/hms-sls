@@ -57,22 +57,22 @@ stages:
                   Parent:
                     type: str
                     required: True
-                    pattern: "^[xs].*"
+                    pattern: "^[xs].+"
                   Children:
                     type: seq
                     required: False
                     matching: all
                     sequence:
                       - type: str
-                        pattern: "^[xs].*"
+                        pattern: "^[xs].+"
                   Xname:
                     type: str
                     required: True
-                    pattern: "^[xs].*"
+                    pattern: "^[xs].+"
                   Type:
                     type: str
                     required: True
-                    pattern: "^comptype_.*"
+                    pattern: "^comptype_.+"
                   Class:
                     type: str
                     required: True
@@ -141,7 +141,7 @@ stages:
                         matching: all
                         sequence:
                           - type: str
-                            pattern: "^[xs].*"
+                            pattern: "^[xs].+"
                       Password:
                         type: str
                         required: False
@@ -210,22 +210,22 @@ stages:
               Parent:
                 type: str
                 required: True
-                pattern: "^[xs].*"
+                pattern: "^[xs].+"
               Children:
                 type: seq
                 required: False
                 matching: all
                 sequence:
                   - type: str
-                    pattern: "^[xs].*"
+                    pattern: "^[xs].+"
               Xname:
                 type: str
                 required: True
-                pattern: "^[xs].*"
+                pattern: "^[xs].+"
               Type:
                 type: str
                 required: True
-                pattern: "^comptype_.*"
+                pattern: "^comptype_.+"
               Class:
                 type: str
                 required: True
@@ -294,7 +294,7 @@ stages:
                     matching: all
                     sequence:
                       - type: str
-                        pattern: "^[xs].*"
+                        pattern: "^[xs].+"
                   Password:
                     type: str
                     required: False
