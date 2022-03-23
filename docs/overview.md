@@ -58,5 +58,4 @@
   * IP Reservations to populate DNS
 * CANU
 
-![sls-overview.svg](docs/images/sls_overview.svg)
-<img src="docs/images/sls_overview.svg">
+![sls-overview.svg](../docs/images/sls_overview.svg)
