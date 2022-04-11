@@ -18,7 +18,8 @@ The version of the test RPM installed on the NCNs should always match the versio
 
 ## More information
 
-* [SLS design documentation](https://connect.us.cray.com/confluence/display/CASMHMS/System+Layout+Service+%28SLS%29+Design+Documentation)
+* [SLS design documentation](docs/SLS-design-doc.md)
+* [SLS Overview](docs/overview.md)
 
 ## Future Work
 
