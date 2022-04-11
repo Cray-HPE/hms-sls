@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -95,8 +95,16 @@ func doNetworksPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Now add it to the database.
-	err = datastore.InsertNetwork(network)
-	if err == database.AlreadySuch {
+	validationErr, err := datastore.InsertNetwork(network)
+	if validationErr != nil {
+		log.Println("ERROR: POST network had validation error: ", validationErr)
+		pdet := base.NewProblemDetails("about: blank",
+			"Bad Request",
+			validationErr.Error(),
+			r.URL.Path, http.StatusBadRequest)
+		base.SendProblemDetails(w, pdet, 0)
+		return
+	} else if err == database.AlreadySuch {
 		log.Println("ERROR: ", err)
 		pdet := base.NewProblemDetails("about: blank",
 			"Conflict",
@@ -207,7 +215,17 @@ func doNetworkObjPut(w http.ResponseWriter, r *http.Request) {
 	network.Name = networkName
 
 	// Now do the update.
-	err = datastore.SetNetwork(network)
+	validationErr, err := datastore.SetNetwork(network)
+
+	if validationErr != nil {
+		log.Printf("ERROR: Validation error: %s\n", validationErr)
+		pdet := base.NewProblemDetails("about: blank",
+			"Bad Request",
+			validationErr.Error(),
+			r.URL.Path, http.StatusBadRequest)
+		base.SendProblemDetails(w, pdet, 0)
+		return
+	}
 
 	if err != nil {
 		log.Println("ERROR: Failed to update network in DB:", err)

@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,8 @@ package datastore
 
 import (
 	"errors"
+	"fmt"
+	"net"
 	"strings"
 
 	"github.com/Cray-HPE/hms-sls/internal/database"
@@ -67,7 +69,24 @@ func verifyNetwork(nw sls_common.Network) error {
 		return nameErr
 	}
 
+	ipRangeErr := verifyIPRanges(nw.IPRanges)
+	if ipRangeErr != nil {
+		return ipRangeErr
+	}
+
 	return nil
+}
+
+// Validates that the IP ranges are in a valid CIDR notation. Examples: 10.254.0.0/17, 10.94.100.0/24
+func verifyIPRanges(ipRanges []string) (err error) {
+	for _, ipRange := range ipRanges {
+		_, _, parseErr := net.ParseCIDR(ipRange)
+		if parseErr != nil {
+			err = fmt.Errorf("invalid IP Range: %s", ipRange)
+			return
+		}
+	}
+	return
 }
 
 // GetNetwork returns the network object matching the given name.
@@ -76,13 +95,13 @@ func GetNetwork(name string) (sls_common.Network, error) {
 }
 
 // InsertNetwork adds a given network into the database assuming it passes validation.
-func InsertNetwork(network sls_common.Network) (err error) {
-	err = verifyNetwork(network)
-	if err != nil {
+func InsertNetwork(network sls_common.Network) (validationErr error, dbErr error) {
+	validationErr = verifyNetwork(network)
+	if validationErr != nil {
 		return
 	}
 
-	err = database.InsertNetwork(network)
+	dbErr = database.InsertNetwork(network)
 
 	return
 }
@@ -94,28 +113,29 @@ func UpdateNetwork(network sls_common.Network) error {
 }
 
 // Insert or update a network
-func SetNetwork(network sls_common.Network) error {
-	err := verifyNetwork(network)
-	if err != nil {
-		return err
+func SetNetwork(network sls_common.Network) (verificationErr error, dbErr error) {
+	verificationErr = verifyNetwork(network)
+	if verificationErr != nil {
+		return
 	}
 	_, nwerr := GetNetwork(network.Name)
 	if (nwerr != nil) && (nwerr != database.NoSuch) {
-		return nwerr
+		dbErr = nwerr
+		return
 	}
 
 	if (nwerr != nil) && (nwerr == database.NoSuch) {
-		inserr := database.InsertNetwork(network)
-		if inserr != nil {
-			return inserr
+		dbErr = database.InsertNetwork(network)
+		if dbErr != nil {
+			return
 		}
 	} else {
-		upderr := database.UpdateNetwork(network)
-		if upderr != nil {
-			return upderr
+		dbErr = database.UpdateNetwork(network)
+		if dbErr != nil {
+			return
 		}
 	}
-	return nil
+	return
 }
 
 // DeleteNetwork removes a network from the DB.

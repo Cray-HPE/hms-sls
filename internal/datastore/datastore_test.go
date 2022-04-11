@@ -430,13 +430,14 @@ func (suite *DatastoreTestSuite) Test_GetNetwork() {
 		Name:     "HSN",
 		FullName: "High Speed Network",
 		Type:     sls_common.NetworkTypeSS10,
-		IPRanges: []string{},
+		IPRanges: []string{"1.0.0.0/8"},
 	}
 
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	err = SetNetwork(nw)
+	validationErr, err := SetNetwork(nw)
+	suite.NoError(validationErr, "Invalid network")
 	suite.NoError(err, "Failed to store Network")
 
 	// ok, now get it back...
@@ -463,13 +464,14 @@ func (suite *DatastoreTestSuite) Test_SetNetwork() {
 		Name:     "HSN",
 		FullName: "High Speed Network",
 		Type:     sls_common.NetworkTypeSS10,
-		IPRanges: []string{},
+		IPRanges: []string{"10.250.0.0/16", "10.101.10.0/24", "10.254.0.0/17"},
 	}
 
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	err = SetNetwork(nw)
+	validationErr, err := SetNetwork(nw)
+	suite.NoError(validationErr, "Invalid network")
 	suite.NoError(err, "Failed to store Network")
 
 	res, err := GetNetwork(nw.Name)
@@ -482,18 +484,40 @@ func (suite *DatastoreTestSuite) Test_SetNetwork() {
 	suite.Equal(nw, res, "Returned object is not equal to input")
 }
 
-func (suite *DatastoreTestSuite) Test_DeleteNetwork() {
+func (suite *DatastoreTestSuite) Test_SetNetworkValidationError() {
 	nw := sls_common.Network{
-		Name:     "HSN",
+		Name:     "HSNValidationError",
 		FullName: "High Speed Network",
 		Type:     sls_common.NetworkTypeSS10,
-		IPRanges: []string{},
+		IPRanges: []string{"10.101.10.0/24", "1010.250.0.0/16", "10.254.0.0/17"}, // contains an invalid range
 	}
 
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	err = SetNetwork(nw)
+	validationErr, err := SetNetwork(nw)
+	suite.NoError(err, "Unexpected DB error")
+	if validationErr == nil {
+		suite.FailNow("Expected validation error for " + nw.IPRanges[1])
+	}
+
+	_, err = GetNetwork(nw.Name)
+	suite.EqualError(err, database.NoSuch.Error(), "Expected there to be no instance of "+nw.Name)
+}
+
+func (suite *DatastoreTestSuite) Test_DeleteNetwork() {
+	nw := sls_common.Network{
+		Name:     "HSN",
+		FullName: "High Speed Network",
+		Type:     sls_common.NetworkTypeSS10,
+		IPRanges: []string{"10.101.10.0/24", "10.254.0.0/17"},
+	}
+
+	err := ConfigureStorage("etcd", "mem:", []string{})
+	suite.NoError(err, "Unexpected error configuring storage")
+
+	validationErr, err := SetNetwork(nw)
+	suite.NoError(validationErr, "Invalid network")
 	suite.NoError(err, "Failed to store Network object")
 
 	res, err := GetNetwork(nw.Name)
