@@ -13,28 +13,28 @@ services:
     entrypoint: entrypoint.sh smoke -f smoke.json -u http://cray-sls:8376
     networks:
       - sls
-  s3:
-    #image: arti.dev.cray.com/third-party-docker-stable-local/minio/minio:RELEASE.2020-04-10T03-34-42Z
-    image: artifactory.algol60.net/docker.io-cache/minio/minio:latest
-    hostname: s3
-    environment:
-      MINIO_ACCESS_KEY: s3-access-key
-      MINIO_SECRET_KEY: s3-secret-key
-    command:  server /data
-    ports:
-      - "9000:9000"
-    networks:
-      - sls
-  s3-init:
-    image: artifactory.algol60.net/csm-docker/stable/minio/mc:latest
-    hostname: s3-init
-    environment:
-      - MC_HOST_S3=http://s3-access-key:s3-secret-key@s3:9000
-    command:  mb S3/sls
-    depends_on:
-      - s3
-    networks:
-      - sls
+#  s3:
+#    #image: arti.dev.cray.com/third-party-docker-stable-local/minio/minio:RELEASE.2020-04-10T03-34-42Z
+#    image: artifactory.algol60.net/docker.io-cache/minio/minio:latest
+#    hostname: s3
+#    environment:
+#      MINIO_ACCESS_KEY: s3-access-key
+#      MINIO_SECRET_KEY: s3-secret-key
+#    command:  server /data
+#    ports:
+#      - "9000:9000"
+#    networks:
+#      - sls
+#  s3-init:
+#    image: artifactory.algol60.net/csm-docker/stable/minio/mc:latest
+#    hostname: s3-init
+#    environment:
+#      - MC_HOST_S3=http://s3-access-key:s3-secret-key@s3:9000
+#    command:  mb S3/sls
+#    depends_on:
+#      - s3
+#    networks:
+#      - sls
   postgres:
     hostname: postgres
     image: artifactory.algol60.net/docker.io/library/postgres:11-alpine
@@ -85,6 +85,7 @@ services:
     ports:
       - "8376:8376"
     depends_on:
+#      - s3-init
       - postgres
       - sls-init
       - vault
