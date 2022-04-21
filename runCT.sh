@@ -51,6 +51,7 @@ docker-compose up  -d cray-sls #this will stand up everything except for the int
 #docker-compose up -d ct-tests-functional-wait-for-smd
 #docker wait ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
 #docker logs ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
+sleep 300
 docker-compose up --exit-code-from ct-tests-smoke ct-tests-smoke
 test_result=$?
 echo "Cleaning up containers..."
