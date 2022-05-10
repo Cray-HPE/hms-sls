@@ -23,7 +23,7 @@
 # Dockerfile for building HMS SLS.
 
 # Build base just has the packages installed we need.
-FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/golang:1.16-alpine3.13 AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
