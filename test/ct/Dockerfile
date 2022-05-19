@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,24 +20,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Service
-NAME ?= cray-sls
-VERSION ?= $(shell cat .version)
+FROM artifactory.algol60.net/csm-docker/stable/hms-test:3.0.0
 
+COPY smoke/ /src/app
+COPY functional/ /src/app
+COPY tavern_global_config_ct_test.yaml /src/app/tavern_global_config_ct_test.yaml
 
-all : image unittest ct snyk ct_image
+ENV PATH="/src/libs:${PATH}"
+ENV PATH="/src/app:${PATH}"
 
-image:
-	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
+USER root
+RUN chown -R 65534:65534 /src
+USER 65534:65534
 
-unittest:
-	./runUnitTest.sh
-
-snyk:
-	./runSnyk.sh
-
-ct:
-	./runCT.sh
-
-ct_image:
-	docker build --no-cache -f test/ct/Dockerfile test/ct/ --tag hms-sls-test:${VERSION}
+# this is inherited from the hms-test container
+ENTRYPOINT [ "entrypoint.sh" ]

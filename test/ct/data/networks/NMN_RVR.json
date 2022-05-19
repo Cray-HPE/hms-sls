@@ -1,0 +1,27 @@
+{
+  "Name": "NMN_RVR",
+  "FullName": "River Compute Node Management Network",
+  "IPRanges": [
+    "10.106.0.0/17"
+  ],
+  "Type": "ethernet",
+  "ExtraProperties": {
+    "CIDR": "10.106.0.0/17",
+    "MTU": 9000,
+    "Subnets": [
+      {
+        "CIDR": "10.106.0.0/22",
+        "DHCPEnd": "10.106.3.254",
+        "DHCPStart": "10.106.0.10",
+        "FullName": "",
+        "Gateway": "10.106.0.1",
+        "Name": "cabinet_3000",
+        "VlanID": 1770
+      }
+    ],
+    "VlanRange": [
+      1770,
+      1770
+    ]
+  }
+}

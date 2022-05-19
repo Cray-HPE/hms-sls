@@ -1,0 +1,14 @@
+{
+  "Parent": "x3000c0h23",
+  "Xname": "x3000c0h23s1",
+  "Type": "comptype_hl_switch",
+  "Class": "River",
+  "TypeString": "MgmtHLSwitch",
+  "ExtraProperties": {
+    "Aliases": [
+      "sw-spine-001"
+    ],
+    "Brand": "Mellanox",
+    "IP4addr": "10.254.0.2"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "Parent": "x0c0s1b0",
+  "Xname": "x0c0s1b0n0",
+  "Type": "comptype_node",
+  "Class": "River",
+  "TypeString": "Node",
+  "ExtraProperties": {
+    "Aliases": [
+      "nid000002"
+    ],
+    "NID": 2,
+    "Role": "Compute"
+  }
+}

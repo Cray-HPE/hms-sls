@@ -20,24 +20,40 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Service
-NAME ?= cray-sls
-VERSION ?= $(shell cat .version)
+# Tavern test cases for the SLS health API
+# Author: Mitch Schooler
+# Service: System Layout Service
 
+# HMS test metrics test cases: 2
+# 1. GET /health API response code
+# 2. GET /health API response body
+---
+test_name: Verify the health resource
 
-all : image unittest ct snyk ct_image
-
-image:
-	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
-
-unittest:
-	./runUnitTest.sh
-
-snyk:
-	./runSnyk.sh
-
-ct:
-	./runCT.sh
-
-ct_image:
-	docker build --no-cache -f test/ct/Dockerfile test/ct/ --tag hms-sls-test:${VERSION}
+stages:
+  # 1. GET /health API response code
+  # 2. GET /health API response body
+  - name: Ensure that the SLS health can be retrieved
+    request:
+      url: "{sls_base_url}/v1/health"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              Vault:
+                type: str
+                required: True
+                enum:
+                  - "Enabled and initialized"
+              DBConnection:
+                type: str
+                required: True
+                enum:
+                  - "Ready"

@@ -1,0 +1,13 @@
+{
+  "Parent": "x3000c0w22",
+  "Xname": "x3000c0w22j25",
+  "Type": "comptype_mgmt_switch_connector",
+  "Class": "River",
+  "TypeString": "MgmtSwitchConnector",
+  "ExtraProperties": {
+    "NodeNics": [
+      "x3000c0s7b0"
+    ],
+    "VendorName": "ethernet1/1/25"
+  }
+}

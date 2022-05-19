@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 2022-05-19
+
+### Changed
+
+- Updated SLS to build using GitHub Actions instead of Jenkins.
+- Pull images from artifactory.algol60.net instead of arti.dev.cray.com.
+- Added a runCT.sh script that can run the CT tests in a docker-compose environment.
+
 ## [1.18.0] - 2022-04-11
 
 ### Changed

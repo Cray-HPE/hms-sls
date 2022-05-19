@@ -1,0 +1,17 @@
+{
+  "Name": "BICAN",
+  "FullName": "SystemDefaultRoute points the network name of the default route",
+  "IPRanges": [
+    "0.0.0.0/0"
+  ],
+  "Type": "ethernet",
+  "ExtraProperties": {
+    "CIDR": "0.0.0.0/0",
+    "MTU": 9000,
+    "Subnets": [],
+    "SystemDefaultRoute": "CAN",
+    "VlanRange": [
+      0
+    ]
+  }
+}

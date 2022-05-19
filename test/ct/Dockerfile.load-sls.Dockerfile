@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,24 +20,23 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Service
-NAME ?= cray-sls
-VERSION ?= $(shell cat .version)
+FROM artifactory.algol60.net/docker.io/library/alpine:3.15
 
+RUN set -x \
+    && apk -U upgrade \
+    && apk add --no-cache \
+        bash \
+        curl \
+        jq
 
-all : image unittest ct snyk ct_image
+COPY load-sls.sh /src/app/load-sls.sh
+COPY data/hardware /src/app/data/hardware
+COPY data/networks /src/app/data/networks
 
-image:
-	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
+WORKDIR /src/app
+# Run as nobody
+RUN chown -R 65534:65534 /src
+USER 65534:65534
 
-unittest:
-	./runUnitTest.sh
-
-snyk:
-	./runSnyk.sh
-
-ct:
-	./runCT.sh
-
-ct_image:
-	docker build --no-cache -f test/ct/Dockerfile test/ct/ --tag hms-sls-test:${VERSION}
+# this is inherited from the hms-test container
+CMD [ "/src/app/load-sls.sh" ]
