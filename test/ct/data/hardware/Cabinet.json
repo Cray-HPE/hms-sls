@@ -1,0 +1,39 @@
+{
+  "Parent": "s0",
+  "Children": [
+    "x3000c0r24b0",
+    "x3000c0s19b999"
+  ],
+  "Xname": "x3000",
+  "Type": "comptype_cabinet",
+  "Class": "River",
+  "TypeString": "Cabinet",
+  "ExtraProperties": {
+    "Networks": {
+      "cn": {
+        "HMN": {
+          "CIDR": "10.107.0.0/22",
+          "Gateway": "10.107.0.1",
+          "VLan": 1513
+        },
+        "NMN": {
+          "CIDR": "10.106.0.0/22",
+          "Gateway": "10.106.0.1",
+          "VLan": 1770
+        }
+      },
+      "ncn": {
+        "HMN": {
+          "CIDR": "10.107.0.0/22",
+          "Gateway": "10.107.0.1",
+          "VLan": 1513
+        },
+        "NMN": {
+          "CIDR": "10.106.0.0/22",
+          "Gateway": "10.106.0.1",
+          "VLan": 1770
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "Name": "HSN",
+  "FullName": "High Speed Network",
+  "IPRanges": [
+    "10.253.0.0/16"
+  ],
+  "Type": "slingshot10",
+  "ExtraProperties": {
+    "CIDR": "10.253.0.0/16",
+    "MTU": 9000,
+    "Subnets": [
+      {
+        "CIDR": "10.253.0.0/16",
+        "FullName": "HSN Base Subnet",
+        "Gateway": "10.253.0.1",
+        "Name": "hsn_base_subnet",
+        "VlanID": 613
+      }
+    ],
+    "VlanRange": [
+      613,
+      868
+    ]
+  }
+}

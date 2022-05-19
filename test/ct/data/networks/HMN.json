@@ -1,0 +1,222 @@
+{
+  "Name": "HMN",
+  "FullName": "Hardware Management Network",
+  "IPRanges": [
+    "10.254.0.0/17"
+  ],
+  "Type": "ethernet",
+  "ExtraProperties": {
+    "CIDR": "10.254.0.0/17",
+    "MTU": 9000,
+    "Subnets": [
+      {
+        "CIDR": "10.254.0.0/17",
+        "FullName": "HMN Management Network Infrastructure",
+        "Gateway": "10.254.0.1",
+        "IPReservations": [
+          {
+            "Comment": "x3000c0h23s1",
+            "IPAddress": "10.254.0.2",
+            "Name": "sw-spine-001"
+          },
+          {
+            "Comment": "x3000c0h23s2",
+            "IPAddress": "10.254.0.3",
+            "Name": "sw-spine-002"
+          },
+          {
+            "Comment": "x3000c0w22",
+            "IPAddress": "10.254.0.4",
+            "Name": "sw-leaf-bmc-001"
+          }
+        ],
+        "Name": "network_hardware",
+        "VlanID": 4
+      },
+      {
+        "CIDR": "10.254.1.0/17",
+        "DHCPEnd": "10.254.1.221",
+        "DHCPStart": "10.254.1.21",
+        "FullName": "HMN Bootstrap DHCP Subnet",
+        "Gateway": "10.254.0.1",
+        "IPReservations": [
+          {
+            "Comment": "k8s-virtual-ip",
+            "IPAddress": "10.254.1.2",
+            "Name": "kubeapi-vip"
+          },
+          {
+            "Aliases": [
+              "ncn-s003-mgmt"
+            ],
+            "Comment": "x3000c0s17b0",
+            "IPAddress": "10.254.1.3",
+            "Name": "x3000c0s17b0"
+          },
+          {
+            "Aliases": [
+              "ncn-s003-hmn",
+              "time-hmn",
+              "time-hmn.local",
+              "rgw-vip.hmn"
+            ],
+            "Comment": "x3000c0s17b0n0",
+            "IPAddress": "10.254.1.4",
+            "Name": "ncn-s003"
+          },
+          {
+            "Aliases": [
+              "ncn-s002-mgmt"
+            ],
+            "Comment": "x3000c0s15b0",
+            "IPAddress": "10.254.1.5",
+            "Name": "x3000c0s15b0"
+          },
+          {
+            "Aliases": [
+              "ncn-s002-hmn",
+              "time-hmn",
+              "time-hmn.local",
+              "rgw-vip.hmn"
+            ],
+            "Comment": "x3000c0s15b0n0",
+            "IPAddress": "10.254.1.6",
+            "Name": "ncn-s002"
+          },
+          {
+            "Aliases": [
+              "ncn-s001-mgmt"
+            ],
+            "Comment": "x3000c0s13b0",
+            "IPAddress": "10.254.1.7",
+            "Name": "x3000c0s13b0"
+          },
+          {
+            "Aliases": [
+              "ncn-s001-hmn",
+              "time-hmn",
+              "time-hmn.local",
+              "rgw-vip.hmn"
+            ],
+            "Comment": "x3000c0s13b0n0",
+            "IPAddress": "10.254.1.8",
+            "Name": "ncn-s001"
+          },
+          {
+            "Aliases": [
+              "ncn-w003-mgmt"
+            ],
+            "Comment": "x3000c0s11b0",
+            "IPAddress": "10.254.1.9",
+            "Name": "x3000c0s11b0"
+          },
+          {
+            "Aliases": [
+              "ncn-w003-hmn",
+              "time-hmn",
+              "time-hmn.local"
+            ],
+            "Comment": "x3000c0s11b0n0",
+            "IPAddress": "10.254.1.10",
+            "Name": "ncn-w003"
+          },
+          {
+            "Aliases": [
+              "ncn-w002-mgmt"
+            ],
+            "Comment": "x3000c0s9b0",
+            "IPAddress": "10.254.1.11",
+            "Name": "x3000c0s9b0"
+          },
+          {
+            "Aliases": [
+              "ncn-w002-hmn",
+              "time-hmn",
+              "time-hmn.local"
+            ],
+            "Comment": "x3000c0s9b0n0",
+            "IPAddress": "10.254.1.12",
+            "Name": "ncn-w002"
+          },
+          {
+            "Aliases": [
+              "ncn-w001-mgmt"
+            ],
+            "Comment": "x3000c0s7b0",
+            "IPAddress": "10.254.1.13",
+            "Name": "x3000c0s7b0"
+          },
+          {
+            "Aliases": [
+              "ncn-w001-hmn",
+              "time-hmn",
+              "time-hmn.local"
+            ],
+            "Comment": "x3000c0s7b0n0",
+            "IPAddress": "10.254.1.14",
+            "Name": "ncn-w001"
+          },
+          {
+            "Aliases": [
+              "ncn-m003-mgmt"
+            ],
+            "Comment": "x3000c0s5b0",
+            "IPAddress": "10.254.1.15",
+            "Name": "x3000c0s5b0"
+          },
+          {
+            "Aliases": [
+              "ncn-m003-hmn",
+              "time-hmn",
+              "time-hmn.local"
+            ],
+            "Comment": "x3000c0s5b0n0",
+            "IPAddress": "10.254.1.16",
+            "Name": "ncn-m003"
+          },
+          {
+            "Aliases": [
+              "ncn-m002-mgmt"
+            ],
+            "Comment": "x3000c0s3b0",
+            "IPAddress": "10.254.1.17",
+            "Name": "x3000c0s3b0"
+          },
+          {
+            "Aliases": [
+              "ncn-m002-hmn",
+              "time-hmn",
+              "time-hmn.local"
+            ],
+            "Comment": "x3000c0s3b0n0",
+            "IPAddress": "10.254.1.18",
+            "Name": "ncn-m002"
+          },
+          {
+            "Aliases": [
+              "ncn-m001-mgmt"
+            ],
+            "Comment": "x3000c0s1b0",
+            "IPAddress": "10.254.1.19",
+            "Name": "x3000c0s1b0"
+          },
+          {
+            "Aliases": [
+              "ncn-m001-hmn",
+              "time-hmn",
+              "time-hmn.local"
+            ],
+            "Comment": "x3000c0s1b0n0",
+            "IPAddress": "10.254.1.20",
+            "Name": "ncn-m001"
+          }
+        ],
+        "Name": "bootstrap_dhcp",
+        "VlanID": 4
+      }
+    ],
+    "VlanRange": [
+      4
+    ]
+  }
+}

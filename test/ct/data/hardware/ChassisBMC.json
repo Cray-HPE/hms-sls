@@ -1,0 +1,7 @@
+{
+  "Parent": "x3000",
+  "Xname": "x3000c0s19b999",
+  "Type": "comptype_chassis_bmc",
+  "Class": "River",
+  "TypeString": "ChassisBMC"
+}

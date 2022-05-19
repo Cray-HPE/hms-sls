@@ -1,5 +1,5 @@
 {
-  "smoke_test_name": "SCSD-smoke-tests",
+  "smoke_test_name": "sls-smoke-tests",
   "default_base_url": "http://cray-sls/",
   "test_paths": [
     {

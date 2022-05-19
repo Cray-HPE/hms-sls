@@ -1,0 +1,35 @@
+{
+  "Parent": "x3000c0",
+  "Children": [
+    "x3000c0w22j25",
+    "x3000c0w22j48",
+    "x3000c0w22j32",
+    "x3000c0w22j35",
+    "x3000c0w22j33",
+    "x3000c0w22j26",
+    "x3000c0w22j28",
+    "x3000c0w22j29",
+    "x3000c0w22j30",
+    "x3000c0w22j37",
+    "x3000c0w22j34",
+    "x3000c0w22j31",
+    "x3000c0w22j36",
+    "x3000c0w22j27"
+  ],
+  "Xname": "x3000c0w22",
+  "Type": "comptype_mgmt_switch",
+  "Class": "River",
+  "TypeString": "MgmtSwitch",
+  "ExtraProperties": {
+    "Aliases": [
+      "sw-leaf-bmc-001"
+    ],
+    "Brand": "Dell",
+    "IP4addr": "10.254.0.4",
+    "SNMPAuthPassword": "vault://hms-creds/x3000c0w22",
+    "SNMPAuthProtocol": "MD5",
+    "SNMPPrivPassword": "vault://hms-creds/x3000c0w22",
+    "SNMPPrivProtocol": "DES",
+    "SNMPUsername": "testuser"
+  }
+}
