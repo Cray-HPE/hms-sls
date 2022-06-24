@@ -3,11 +3,11 @@ module github.com/Cray-HPE/hms-sls
 go 1.16
 
 require (
-	github.com/Cray-HPE/hms-base v1.15.0
+	github.com/Cray-HPE/hms-base/v2 v2.0.1
 	github.com/Cray-HPE/hms-compcredentials v1.11.2
 	github.com/Cray-HPE/hms-s3 v1.9.2
 	github.com/Cray-HPE/hms-securestorage v1.12.2
-	github.com/Cray-HPE/hms-xname v1.0.1
+	github.com/Cray-HPE/hms-xname v1.1.0
 	github.com/aws/aws-sdk-go v1.32.4
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/gorilla/mux v1.7.4
