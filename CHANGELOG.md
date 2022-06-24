@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.0] - 2022-06-24
+
+### Changed
+- CASMHMS-5291: Add Model field to the `ComptypeCabinet` structure.
+- Updated the hms-xname package to 1.1.0.
+- Updated references of hms-base to the v2 version of the package. 
+
 ## [1.20.0] - 2022-06-23
 
 ### Changed
