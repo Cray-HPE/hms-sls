@@ -48,6 +48,35 @@ type GenericHardware struct {
 
 type GenericHardwareArray []GenericHardware
 
+func (gh *GenericHardware) Normalize() GenericHardware {
+	// if !xnametypes.IsHMSCompIDValid(gh.Xname) {
+	// 	return fmt.Errorf("invalid xname: %v", gh.Xname)
+	// }
+
+	// // Ensure the xname is normalized (ie strip leading zeros)
+	// gh.Xname = xnametypes.NormalizeHMSCompID(gh.Xname)
+
+	// // Ensure all fields that are derived from the Xname are recalculated
+	// gh.Parent = xnametypes.GetHMSCompParent(gh.Xname)
+	// gh.TypeString = xnametypes.GetHMSType(gh.Xname)
+	// gh.Type = HMSTypeToHMSStringType(gh.TypeString)
+
+	return NewGenericHardware(gh.Xname, gh.Class, gh.ExtraPropertiesRaw)
+}
+
+func NewGenericHardware(xname string, class CabinetType, extraProperties interface{}) GenericHardware {
+	return GenericHardware{
+		Xname:              xnametypes.NormalizeHMSCompID(xname),
+		Class:              class,
+		ExtraPropertiesRaw: extraProperties,
+
+		// Calculate derived fields
+		Parent:     xnametypes.GetHMSCompParent(xname),
+		TypeString: xnametypes.GetHMSType(xname),
+		Type:       HMSTypeToHMSStringType(xnametypes.GetHMSType(xname)),
+	}
+}
+
 /*
 GetParent returns the string xname of the parent of this object.
 */

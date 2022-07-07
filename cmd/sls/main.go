@@ -60,6 +60,7 @@ const (
 	API_SEARCH    = API_ROOT + "/search"
 	API_DUMPSTATE = API_ROOT + "/dumpstate"
 	API_LOADSTATE = API_ROOT + "/loadstate"
+	API_NORMALIZE = API_ROOT + "/normalize"
 )
 
 var httpAddr string
@@ -194,6 +195,11 @@ func generateRoutes() Routes {
 			strings.ToUpper("Post"),
 			API_LOADSTATE,
 			doLoadState,
+		},
+		Route{"doNormalize",
+			strings.ToUpper("Post"),
+			API_NORMALIZE,
+			doNormalize,
 		},
 	}
 }

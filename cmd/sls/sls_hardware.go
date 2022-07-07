@@ -116,13 +116,7 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create GenerricHardware object
-	var hw sls_common.GenericHardware
-	hw.Xname = xnametypes.NormalizeHMSCompID(jdata.Xname)
-	hw.Class = jdata.Class
-	hw.ExtraPropertiesRaw = jdata.ExtraPropertiesRaw
-	hw.Parent = xnametypes.GetHMSCompParent(hw.Xname)
-	hw.TypeString = xnametypes.GetHMSType(hw.Xname)
-	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
+	hw := sls_common.NewGenericHardware(jdata.Xname, jdata.Class, jdata.ExtraPropertiesRaw)
 
 	// Write these into the DB
 	err, created := datastore.SetXname(hw.Xname, hw)
@@ -252,13 +246,7 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create GenericHardware
-	var hw sls_common.GenericHardware
-	hw.Xname = xname
-	hw.Class = jdata.Class
-	hw.ExtraPropertiesRaw = jdata.ExtraPropertiesRaw
-	hw.Parent = xnametypes.GetHMSCompParent(xname)
-	hw.TypeString = xnametypes.GetHMSType(xname)
-	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
+	hw := sls_common.NewGenericHardware(xname, jdata.Class, jdata.ExtraPropertiesRaw)
 
 	// Write back to the DB
 	err, created := datastore.SetXname(hw.Xname, hw)

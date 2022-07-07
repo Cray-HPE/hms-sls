@@ -39,6 +39,7 @@ import (
 	"reflect"
 
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 
 	compcredentials "github.com/Cray-HPE/hms-compcredentials"
 	"github.com/Cray-HPE/hms-sls/internal/database"
@@ -569,7 +570,11 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		hardware = append(hardware, obj)
+		// Recalculate information stored in the component to ensure all information is consistent
+		// TODO should we also look for the malformed ChassisHere also?
+		normalizedObj := obj.Normalize()
+
+		hardware = append(hardware, normalizedObj)
 	}
 
 	hardwareErr := datastore.ReplaceGenericHardware(hardware)
@@ -599,6 +604,75 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// /normalize API
+func doNormalize(w http.ResponseWriter, r *http.Request) {
+	// Retrieve all existing hardware
+	log.Println("DEBUG: Retrieving all existing hardware")
+	allHardware, err := datastore.GetAllHardware()
+	if err != nil {
+		log.Println("ERROR: unable to get hardware: ", err)
+		sendJsonRsp(w, http.StatusInternalServerError, "Failed to get hardware")
+		return
+	}
+
+	// Identify items for normalization
+	var hardwareToUpdate []sls_common.GenericHardware
+	for _, hardware := range allHardware {
+		expectedParent := xnametypes.GetHMSCompParent(hardware.Xname)
+		expectedTypeString := xnametypes.GetHMSType(hardware.Xname)
+		expectedType := sls_common.HMSTypeToHMSStringType(hardware.TypeString)
+
+		// Look for Chassis that have incorrect Type/TypeString information.
+		// This was from bad config generation in CSI in CSM 1.0 and before.
+		if (hardware.Class == sls_common.ClassHill || hardware.Class == sls_common.ClassMountain) &&
+			hardware.TypeString == xnametypes.ChassisBMC && expectedTypeString == xnametypes.Chassis {
+
+			// Now lets create a ChassisBMC object for the Chassis. Every liquid-cooled chassis gets a ChassisBMC
+			// The Chassis will be correct with the normalization below.
+			chassisBMC := sls_common.NewGenericHardware(fmt.Sprintf("%sb0", hardware.Xname), hardware.Class, nil)
+			hardwareToUpdate = append(hardwareToUpdate, chassisBMC)
+
+			log.Printf("DEBUG: Found malformed Chassis object %v, Creating: %v", hardware.Xname, chassisBMC)
+		}
+
+		if hardware.Parent != expectedParent || hardware.TypeString != expectedTypeString || hardware.Type != expectedType {
+			normalizedHardware := hardware.Normalize()
+
+			log.Printf("DEBUG: %v is malformed. Original: %v, Normalized: %v", hardware.Xname, hardware, normalizedHardware)
+			hardwareToUpdate = append(hardwareToUpdate, normalizedHardware)
+		}
+	}
+
+	// Items to update
+	for _, hardware := range hardwareToUpdate {
+		log.Printf("DEBUG: Updating %v in the database", hardware.Xname)
+
+		// Write back to the DB
+		err, _ := datastore.SetXname(hardware.Xname, hardware)
+		if err != nil {
+			log.Println("ERROR updating DB:", err)
+			sendJsonRsp(w, http.StatusInternalServerError, "DB update failed")
+			return
+		}
+	}
+
+	// The response should show what changed
+	// Something maybe like the following
+	// {
+	//   "Hardware": {[
+	//     {
+	//			"Orginal": {...}
+	//			"Normalized": {...}
+	//	   }
+	//	 ]
+	//
+	// }
+	//
+	//
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // Send a JSON response.  If the ecode indicates an error, send
