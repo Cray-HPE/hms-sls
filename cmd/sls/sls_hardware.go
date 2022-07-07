@@ -31,7 +31,7 @@ import (
 
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
 
-	base "github.com/Cray-HPE/hms-base"
+	base "github.com/Cray-HPE/hms-base/v2"
 	"github.com/Cray-HPE/hms-sls/internal/database"
 	"github.com/Cray-HPE/hms-xname/xnametypes"
 

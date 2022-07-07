@@ -34,7 +34,7 @@ import (
 	"strings"
 	"testing"
 
-	base "github.com/Cray-HPE/hms-base"
+	base "github.com/Cray-HPE/hms-base/v2"
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
 	"github.com/stretchr/testify/suite"
 )

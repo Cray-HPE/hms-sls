@@ -29,7 +29,7 @@ import (
 	"net/http"
 	"strings"
 
-	base "github.com/Cray-HPE/hms-base"
+	base "github.com/Cray-HPE/hms-base/v2"
 	"github.com/Cray-HPE/hms-sls/internal/database"
 	"github.com/Cray-HPE/hms-sls/internal/datastore"
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
