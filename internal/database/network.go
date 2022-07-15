@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
@@ -365,45 +364,59 @@ func SearchNetworks(conditions map[string]string, properties map[string]interfac
 		"WHERE \n     "
 
 	// Now build up the WHERE clause with the given conditions.
-	index := 0
+	index := 1
+	parameters := make([]interface{}, 0)
 	for key, value := range conditions {
-		if index != 0 {
+		if index != 1 {
 			q = q + "  AND"
 		}
 
+		// postgres operator
+		//   inet <<= inet returns boolean - returns true if the subnet contains or equals the other subnet
 		if key == "ip_ranges" {
-			q = q + fmt.Sprintf(" '%s' <<= ANY(ip_ranges) \n", value)
+			q = q + fmt.Sprintf(" $%d <<= ANY(ip_ranges) \n", index)
 		} else {
-			q = q + fmt.Sprintf(" %s = '%s' \n", key, value)
+			q = q + fmt.Sprintf(" %s = $%d \n", key, index)
 		}
-
+		parameters = append(parameters, value)
 		index++
 	}
 
 	// Build the conditions for the extra properties JSON column.
 	for key, value := range properties {
-		if index != 0 {
+		if index != 1 {
 			q = q + "  AND"
 		}
 
 		// Some day I want to come back around and make this work with infinite levels of depth, but for now just
 		// investigate the type of the value interface. If it's a string then use one syntax, if it's an array use
 		// another. The rational being that nested types need different syntax to query.
+		//
+		// postgres operators: https://www.postgresql.org/docs/current/functions-json.html
+		//   jsonb -> text returns jsonb - finds the given json field and returns the value as json
+		//   jsonb ->> text returns text - finds the given json field and returns the value as text
+		//   jsonb ?| text[] returns boolean - returns true if any of the strings in text[] exist as top level keys or array elements
 		valueString, ok := value.(string)
 		if ok {
-			q = q + fmt.Sprintf(" extra_properties ->> '%s' = '%s' \n", key, valueString)
+			q = q + fmt.Sprintf(" extra_properties ->> $%d = $%d \n", index, index+1)
+			parameters = append(parameters, key, valueString)
+			index += 2
 		} else if valueArray, ok := value.([]string); ok {
-			q = q + fmt.Sprintf(" extra_properties -> '%s' ?| array['%v'] \n", key,
-				strings.Join(valueArray, "','"))
+			keyIndex := index
+			index++
+			var paramArray string
+			var values []interface{}
+			index, values, paramArray = ToParameterArray(index, valueArray)
+			q = q + fmt.Sprintf(" extra_properties -> $%d ?| array[%s] \n", keyIndex, paramArray)
+			parameters = append(parameters, key)
+			parameters = append(parameters, values...)
 		} else {
 			err = fmt.Errorf("Unable to query on parameter %s: %v", key, value)
 			return
 		}
-
-		index++
 	}
 
-	rows, rowsErr := DB.Query(q)
+	rows, rowsErr := DB.Query(q, parameters...)
 	if rowsErr != nil {
 		err = errors.Errorf("unable to query network: %s", rowsErr)
 		return
