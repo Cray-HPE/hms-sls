@@ -61,7 +61,7 @@ func TestToParameterArray_ThreeValues(t *testing.T) {
 	}
 
 	if len(values) != len(newValues) {
-		t.Errorf("Missmatched value length, actual: %d, expected: %d, actual values: %v", len(newValues), len(values), newValues)
+		t.Errorf("Mismatched values length, actual: %d, expected: %d, actual values: %v", len(newValues), len(values), newValues)
 		return
 	}
 
