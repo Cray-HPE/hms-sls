@@ -78,13 +78,12 @@ github.com/golang/snappy
 github.com/gorilla/mux
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-cleanhttp v0.5.1
+# github.com/hashicorp/go-cleanhttp v0.5.2
+## explicit
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-hclog v0.9.2
-github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.1.0
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-retryablehttp v0.6.0
+# github.com/hashicorp/go-retryablehttp v0.7.1
 ## explicit
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-rootcerts v1.0.1
@@ -139,9 +138,12 @@ github.com/ryanuber/go-glob
 # github.com/sirupsen/logrus v1.6.0
 ## explicit
 github.com/sirupsen/logrus
+# github.com/stretchr/objx v0.2.0
+github.com/stretchr/objx
 # github.com/stretchr/testify v1.5.1
 ## explicit
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
 # go.uber.org/atomic v1.6.0
