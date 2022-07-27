@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.0] - 2022-07-27
+
+### Changed
+- CASMINST-3788: Add SLS Migrator to deal with malformed data from older CSM releases. 
+  - When malformed liquid-cooled Chassis data is encountered a corresponding ChassisBMC will be created.
+  - When malformed xname derivived fields (`Parent`, `Type`, `TypeString`) are encountered the object will be PUT back into SLS to recalculate the fields.
+- Added CDUMgmtSwitch as an acceptable type to the SLS CT functional tests.
+
 ## [1.22.0] - 2022-07-18
 
 ### Changed

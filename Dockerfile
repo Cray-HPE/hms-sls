@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2019-2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright 2019-2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,7 @@ RUN set -ex \
     && go build -v -i -o sls github.com/Cray-HPE/hms-sls/cmd/sls \
     && go build -v -i -o sls-init github.com/Cray-HPE/hms-sls/cmd/sls-init \
     && go build -v -i -o sls-loader github.com/Cray-HPE/hms-sls/cmd/sls-loader \
+    && go build -v -i -o sls-migrator github.com/Cray-HPE/hms-sls/cmd/sls-migrator \
     && go build -v -i -o sls-s3-downloader github.com/Cray-HPE/hms-sls/cmd/sls-s3-downloader
 
 ### Final Stage ###
@@ -85,6 +86,7 @@ COPY entrypoint.sh /
 COPY --from=builder /go/sls /usr/local/bin
 COPY --from=builder /go/sls-init /usr/local/bin
 COPY --from=builder /go/sls-loader /usr/local/bin
+COPY --from=builder /go/sls-migrator /usr/local/bin
 COPY --from=builder /go/sls-s3-downloader /usr/local/bin
 
 # nobody 65534:65534

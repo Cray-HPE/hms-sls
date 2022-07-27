@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # MIT License
 #
-# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright 2021-2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -92,6 +92,15 @@ elif [ "$1" = 'sls-loader' ]; then
   # If the loader is called then we have to do some prep work. First, pull the SLS file out of S3.
   sls-s3-downloader
   echo 'Configs downloaded from S3.'
+
+  # Now attempt to load the downlaoded sls_input_file.json into SLS.
+  sls-loader
+  echo "SLS has been loaded."
+
+  # Perform a migration of SLS
+  sls-migrator
+  echo "SLS has been migrated."
+  exit 0
 fi
 
 exec "$@"
