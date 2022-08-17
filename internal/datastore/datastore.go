@@ -93,7 +93,7 @@ func normalizeCommonFields(obj *sls_common.GenericHardware) error {
 	return nil
 }
 
-func normalizeFields(obj sls_common.GenericHardware) (sls_common.GenericHardware, error) {
+func NormalizeFields(obj *sls_common.GenericHardware) error {
 	// Find old object and merge in, if possible
 	// xname must be present
 	obj.SetXname(xnametypes.NormalizeHMSCompID(obj.GetXname()))
@@ -102,7 +102,7 @@ func normalizeFields(obj sls_common.GenericHardware) (sls_common.GenericHardware
 
 	// Now do the weird ones (where possible)
 
-	return obj, nil
+	return nil
 }
 
 /*
@@ -170,7 +170,7 @@ func validateCommonFields(obj sls_common.GenericHardware) error {
 	return nil
 }
 
-func validateFields(obj sls_common.GenericHardware) error {
+func ValidateFields(obj sls_common.GenericHardware) error {
 	// First validate common fields:
 	err := validateCommonFields(obj)
 	if err != nil {
@@ -257,12 +257,12 @@ SetXname updates a specified xname with new or updated properties
 func SetXname(xname string, obj sls_common.GenericHardware) (err error, created bool) {
 	created = false
 	// Setup: make sure all data is clean
-	obj, err = normalizeFields(obj)
+	err = NormalizeFields(&obj)
 	if err != nil {
 		return err, created
 	}
 
-	err = validateFields(obj)
+	err = ValidateFields(obj)
 	if err != nil {
 		return err, created
 	}

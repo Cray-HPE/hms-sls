@@ -39,6 +39,7 @@ import (
 	"reflect"
 
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 
 	compcredentials "github.com/Cray-HPE/hms-compcredentials"
 	"github.com/Cray-HPE/hms-sls/internal/database"
@@ -430,9 +431,9 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 	// Check to see if we've been given a key to encrypt with.
 	privateKeyFile, _, privateKeyErr := r.FormFile("private_key")
 	if privateKeyErr == http.ErrMissingFile {
-		log.Println("WARNING: No private key provided, ignoring any encrypted blocks.")
+		log.Println("WARNING: loadstate: No private key provided, ignoring any encrypted blocks.")
 	} else if privateKeyErr != nil {
-		log.Println("ERROR: Unable to parse private key form file: ", privateKeyErr)
+		log.Println("ERROR: loadstate: Unable to parse private key form file: ", privateKeyErr)
 		pdet := base.NewProblemDetails("about: blank",
 			"Bad Request",
 			"Unable to parse private key form file",
@@ -446,7 +447,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 		buf.Reset()
 
 		if privateKeyString == "" {
-			log.Println("ERROR: POST to dumpState with blank private key")
+			log.Println("ERROR: loadstate: POST to dumpState with blank private key")
 			pdet := base.NewProblemDetails("about: blank",
 				"Bad Request",
 				"Private key must be included as form data when POSTing to loadState",
@@ -458,7 +459,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 		// Now just need to convert the private key string into a RSA private key.
 		block, _ := pem.Decode([]byte(privateKeyString))
 		if block == nil {
-			log.Println("ERROR: unable to decode private key")
+			log.Println("ERROR: loadstate: unable to decode private key")
 			pdet := base.NewProblemDetails("about: blank",
 				"Unsupported Media Type",
 				"Failed to decode private key",
@@ -471,7 +472,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 		// openssl rsa -in private.pem -outform PEM -pubout -out public.pem
 		privateKeyInterface, parseErr := x509.ParsePKCS8PrivateKey(block.Bytes)
 		if parseErr != nil {
-			log.Println("ERROR: unable to parse private key")
+			log.Println("ERROR: loadstate: unable to parse private key")
 			pdet := base.NewProblemDetails("about: blank",
 				"Unsupported Media Type",
 				"Failed to parse private key",
@@ -487,7 +488,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 	// Now get the config file to read back in.
 	configFile, _, configFileErr := r.FormFile("sls_dump")
 	if configFileErr != nil {
-		log.Println("ERROR: Unable to parse SLS dump form file: ", configFileErr)
+		log.Println("ERROR: loadstate: Unable to parse SLS dump form file: ", configFileErr)
 		pdet := base.NewProblemDetails("about: blank",
 			"Bad Request",
 			"Unable to parse SLS dump form file",
@@ -502,13 +503,97 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 	// Read the body, let's turn it into back into JSON
 	marshalErr := json.Unmarshal(buf.Bytes(), &inputData)
 	if marshalErr != nil {
-		log.Println("ERROR: Unable to unmarshal config file: ", marshalErr)
+		log.Println("ERROR: loadstate: Unable to unmarshal config file: ", marshalErr)
 		pdet := base.NewProblemDetails("about: blank",
 			"Bad Request",
 			"Unable to unmarshal config file",
 			r.URL.Path, http.StatusBadRequest)
 		base.SendProblemDetails(w, pdet, 0)
 		return
+	}
+
+	// Validate hardware
+	for i, h := range inputData.Hardware {
+		originalXname := h.Xname
+		h.Xname = xnametypes.NormalizeHMSCompID(h.Xname)
+		if !xnametypes.IsHMSCompIDValid(h.Xname) {
+			pdet := base.NewProblemDetails("about: blank",
+				"Bad Request",
+				fmt.Sprintf("Invalid xname: %s", h.Xname),
+				r.URL.Path, http.StatusBadRequest)
+			base.SendProblemDetails(w, pdet, 0)
+			log.Printf("ERROR: loadstate: invalid hardware: %s - %s\n", pdet.Title, pdet.Detail)
+			return
+		}
+		if h.Xname != originalXname {
+			log.Printf("INFO: loadstate: Normalized xname. requested: %s, changed to: %s\n", originalXname, h.Xname)
+		}
+
+		class := h.Class
+		if class == "" {
+			pdet := base.NewProblemDetails("about: blank",
+				"Bad Request",
+				fmt.Sprintf("Missing Class field for %s", h.Xname),
+				r.URL.Path, http.StatusBadRequest)
+			base.SendProblemDetails(w, pdet, 0)
+			log.Printf("ERROR: loadstate: invalid hardware: %s - %s\n", pdet.Title, pdet.Detail)
+			return
+		}
+
+		err := datastore.NormalizeFields(&h)
+		if err != nil {
+			pdet := base.NewProblemDetails("about: blank",
+				"Bad Request",
+				fmt.Sprintf("Failure normalizing fields for %s. %v", h.Xname, err),
+				r.URL.Path, http.StatusBadRequest)
+			base.SendProblemDetails(w, pdet, 0)
+			log.Printf("ERROR: loadstate: invalid hardware: %s - %s\n", pdet.Title, pdet.Detail)
+			return
+		}
+
+		p := xnametypes.GetHMSCompParent(h.Xname)
+		if p != h.Parent {
+			log.Printf("INFO: loadstate: Parent mismatch. xname: %s, requested: %s, changed to: %s\n", h.Xname, h.Parent, p)
+		}
+		h.Parent = p
+
+		ts := xnametypes.GetHMSType(h.Xname)
+		if ts != h.TypeString {
+			log.Printf("INFO: loadstate: TypeString mismatch. xname: %s, requested: %s, changed to: %s\n", h.Xname, h.TypeString, ts)
+		}
+		h.TypeString = ts
+
+		t := sls_common.HMSTypeToHMSStringType(h.TypeString)
+		if t != h.Type {
+			log.Printf("INFO: loadstate: Type mismatch. xname: %s, requested: %s, changed to: %s\n", h.Xname, h.Type, t)
+		}
+		h.Type = t
+
+		err = datastore.ValidateFields(h)
+		if err != nil {
+			pdet := base.NewProblemDetails("about: blank",
+				"Bad Request",
+				fmt.Sprintf("Invalid hardware data for %s. %v", h.Xname, err),
+				r.URL.Path, http.StatusBadRequest)
+			base.SendProblemDetails(w, pdet, 0)
+			log.Printf("ERROR: loadstate: invalid hardware: %s - %s\n", pdet.Title, pdet.Detail)
+			return
+		}
+		inputData.Hardware[i] = h
+	}
+
+	// Validate networks
+	for _, n := range inputData.Networks {
+		err := datastore.VerifyNetwork(n)
+		if err != nil {
+			pdet := base.NewProblemDetails("about: blank",
+				"Bad Request",
+				fmt.Sprintf("Invalid network data for %s. %v", n.Name, err),
+				r.URL.Path, http.StatusBadRequest)
+			base.SendProblemDetails(w, pdet, 0)
+			log.Printf("ERROR: loadstate: invalid networks: %s - %s\n", pdet.Title, pdet.Detail)
+			return
+		}
 	}
 
 	// Finally we are ready to put the info back into the database.
@@ -522,7 +607,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 			// Decode the base64 encoded string.
 			base64EncryptedStringDecoded, decodeErr := base64.StdEncoding.DecodeString(obj.VaultData.(string))
 			if decodeErr != nil {
-				log.Println("ERROR: unable to decode credentials:", decodeErr)
+				log.Println("ERROR: loadstate: unable to decode credentials:", decodeErr)
 				pdet := base.NewProblemDetails("about: blank",
 					"Internal Server Error",
 					"Failed to decode credentials",
@@ -534,7 +619,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 			credentialsDecryptedBytes, decryptErr := rsa.DecryptOAEP(shaHash, rand.Reader, privateKey,
 				base64EncryptedStringDecoded, nil)
 			if decryptErr != nil {
-				log.Println("ERROR: unable to decrypt credentials:", decryptErr)
+				log.Println("ERROR: loadstate: unable to decrypt credentials:", decryptErr)
 				pdet := base.NewProblemDetails("about: blank",
 					"Internal Server Error",
 					"Failed to decrypt credentials",
@@ -547,7 +632,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 			var credentials compcredentials.CompCredentials
 			unmarshalErr := json.Unmarshal(credentialsDecryptedBytes, &credentials)
 			if unmarshalErr != nil {
-				log.Println("ERROR: unable to unmarshal credentials:", unmarshalErr)
+				log.Println("ERROR: loadstate: unable to unmarshal credentials:", unmarshalErr)
 				pdet := base.NewProblemDetails("about: blank",
 					"Internal Server Error",
 					"Failed to unmarshal credentials",
@@ -559,7 +644,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 			// Now finally we can put the credentials back into Vault.
 			compCredErr := compCredStore.StoreCompCred(credentials)
 			if compCredErr != nil {
-				log.Println("ERROR: unable to store credentials:", compCredErr)
+				log.Println("ERROR: loadstate: unable to store credentials:", compCredErr)
 				pdet := base.NewProblemDetails("about: blank",
 					"Internal Server Error",
 					"Failed to store credentials",

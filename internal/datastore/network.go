@@ -59,7 +59,7 @@ func verifyNetworkName(networkName string) error {
 }
 
 // Helper function to verify network is of a correct type and name.
-func verifyNetwork(nw sls_common.Network) error {
+func VerifyNetwork(nw sls_common.Network) error {
 	typeErr := verifyNetworkType(nw.Type)
 	if typeErr != nil {
 		return typeErr
@@ -97,7 +97,7 @@ func GetNetwork(name string) (sls_common.Network, error) {
 
 // InsertNetwork adds a given network into the database assuming it passes validation.
 func InsertNetwork(network sls_common.Network) (validationErr error, dbErr error) {
-	validationErr = verifyNetwork(network)
+	validationErr = VerifyNetwork(network)
 	if validationErr != nil {
 		return
 	}
@@ -115,7 +115,7 @@ func UpdateNetwork(network sls_common.Network) error {
 
 // Insert or update a network
 func SetNetwork(network sls_common.Network) (verificationErr error, dbErr error) {
-	verificationErr = verifyNetwork(network)
+	verificationErr = VerifyNetwork(network)
 	if verificationErr != nil {
 		return
 	}
