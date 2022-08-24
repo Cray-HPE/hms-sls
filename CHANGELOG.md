@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.25.0] - 2022-08-24
 
 ### Changed
-- CASMHMS-5691: Added network type slingshot11
+- CASMHMS-5691: Added the slingshot11 network type
 
 ## [1.24.0] - 2022-08-09
 
