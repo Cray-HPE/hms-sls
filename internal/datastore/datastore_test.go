@@ -429,7 +429,7 @@ func (suite *DatastoreTestSuite) Test_GetNetwork() {
 	nw := sls_common.Network{
 		Name:     "HSN",
 		FullName: "High Speed Network",
-		Type:     sls_common.NetworkTypeSS10,
+		Type:     sls_common.NetworkTypeSS11,
 		IPRanges: []string{"1.0.0.0/8"},
 	}
 
@@ -463,7 +463,7 @@ func (suite *DatastoreTestSuite) Test_SetNetwork() {
 	nw := sls_common.Network{
 		Name:     "HSN",
 		FullName: "High Speed Network",
-		Type:     sls_common.NetworkTypeSS10,
+		Type:     sls_common.NetworkTypeSS11,
 		IPRanges: []string{"10.250.0.0/16", "10.101.10.0/24", "10.254.0.0/17"},
 	}
 
@@ -488,7 +488,7 @@ func (suite *DatastoreTestSuite) Test_SetNetworkValidationError() {
 	nw := sls_common.Network{
 		Name:     "HSNValidationError",
 		FullName: "High Speed Network",
-		Type:     sls_common.NetworkTypeSS10,
+		Type:     sls_common.NetworkTypeSS11,
 		IPRanges: []string{"10.101.10.0/24", "1010.250.0.0/16", "10.254.0.0/17"}, // contains an invalid range
 	}
 
@@ -509,7 +509,7 @@ func (suite *DatastoreTestSuite) Test_DeleteNetwork() {
 	nw := sls_common.Network{
 		Name:     "HSN",
 		FullName: "High Speed Network",
-		Type:     sls_common.NetworkTypeSS10,
+		Type:     sls_common.NetworkTypeSS11,
 		IPRanges: []string{"10.101.10.0/24", "10.254.0.0/17"},
 	}
 
