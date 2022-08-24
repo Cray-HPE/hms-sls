@@ -470,7 +470,7 @@ object with the following properties:
             "10.1.2.0/24",
             ...
         ],
-        "Type": "Slingshot10"  # slingshot10,ethernet,OPA,infiniband,mixed
+        "Type": "Slingshot10"  # slingshot10,slingshot11,ethernet,OPA,infiniband,mixed
     }
 
   
@@ -986,7 +986,7 @@ Therefore, the following format is offered as a suggestion:
                     "10.1.2.0/24",
                     ...
                 ],
-                "Type": "Slingshot10"  # slingshot10,ethernet,OPA,infiniband,mixed
+                "Type": "Slingshot10"  # slingshot10,slingshot11,ethernet,OPA,infiniband,mixed
             },
         
             "HMN": {
@@ -997,7 +997,7 @@ Therefore, the following format is offered as a suggestion:
                     "10.100.2.0/26",
                     ...
                 ],
-                "Type": "Ethernet"     # slingshot10,ethernet,OPA,infiniband,mixed
+                "Type": "Ethernet"     # slingshot10,slingshot11,ethernet,OPA,infiniband,mixed
             },
         ...
         }

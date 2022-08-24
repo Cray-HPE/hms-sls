@@ -42,7 +42,8 @@ func verifyNetworkType(networkType sls_common.NetworkType) error {
 		networkTypeLower != sls_common.NetworkTypeInfiniband.String() &&
 		networkTypeLower != sls_common.NetworkTypeMixed.String() &&
 		networkTypeLower != sls_common.NetworkTypeOPA.String() &&
-		networkTypeLower != sls_common.NetworkTypeSS10.String() {
+		networkTypeLower != sls_common.NetworkTypeSS10.String() &&
+		networkTypeLower != sls_common.NetworkTypeSS11.String() {
 		return InvalidNetworkType
 	}
 

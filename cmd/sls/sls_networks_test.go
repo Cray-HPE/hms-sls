@@ -79,6 +79,14 @@ var nwPutNewPayload = nwTestData{"PUT",
 	http.StatusCreated,
 }
 
+var nwPutNewPayloadSlingshot11 = nwTestData{"PUT",
+	nwURLBase + "/networks/HSN-slingshot11",
+	nwURLBase + "/networks/HSN-slingshot11",
+	json.RawMessage(`{"Name":"HSN-slingshot11","FullName":"High Speed Network slingshot11","IPRanges":["192.168.1.0/28","192.168.2.0/28"],"Type":"slingshot11"}`),
+	sls_common.Network{"HSN-slingshot11", "High Speed Network slingshot11", []string{"192.168.1.0/28", "192.168.2.0/28"}, "slingshot10", 0, "2014-07-16 20:55:46 +0000 UTC", nil},
+	http.StatusCreated,
+}
+
 var nwPostErrPayloads = []nwTestData{
 	nwTestData{"POST", //POST of existing network
 		nwURLBase + "/networks",
@@ -371,7 +379,17 @@ func Test_doNetworkIO(t *testing.T) {
 		logNWTestContext(t, "PUT /netorks", nwPutNewPayload)
 	} else if code != nwPutNewPayload.httpCode {
 		log.Printf("ERROR in PUT /networks expected http code %d but got %d", nwPutNewPayload.httpCode, code)
-		logNWTestContext(t, "PUT /netorks", nwPutNewPayload)
+		logNWTestContext(t, "PUT /networks", nwPutNewPayload)
+	}
+
+	t.Logf("PUT of non-existent network '%s'", nwPutNewPayloadSlingshot11.getNWData.Name)
+	psterr, code = doNWSet(nwPutNewPayloadSlingshot11)
+	if psterr != nil {
+		t.Errorf("ERROR PUT /networks non-existent NW test: %v", psterr)
+		logNWTestContext(t, "PUT /netorks", nwPutNewPayloadSlingshot11)
+	} else if code != nwPutNewPayloadSlingshot11.httpCode {
+		log.Printf("ERROR in PUT /networks expected http code %d but got %d", nwPutNewPayloadSlingshot11.httpCode, code)
+		logNWTestContext(t, "PUT /networks", nwPutNewPayloadSlingshot11)
 	}
 
 	//PUT error, bad JSON
