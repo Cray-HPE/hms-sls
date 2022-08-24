@@ -75,7 +75,7 @@ var nwPutNewPayload = nwTestData{"PUT",
 	nwURLBase + "/networks/HSN",
 	nwURLBase + "/networks/HSN",
 	json.RawMessage(`{"Name":"HSN","FullName":"High Speed Network","IPRanges":["192.168.1.0/28","192.168.2.0/28"],"Type":"slingshot10"}`),
-	sls_common.Network{"HSN2", "High Speed Network", []string{"192.168.1.0/28", "192.168.2.0/28"}, "slingshot10", 0, "2014-07-16 20:55:46 +0000 UTC", nil},
+	sls_common.Network{"HSN", "High Speed Network", []string{"192.168.1.0/28", "192.168.2.0/28"}, "slingshot10", 0, "2014-07-16 20:55:46 +0000 UTC", nil},
 	http.StatusCreated,
 }
 
@@ -83,7 +83,7 @@ var nwPutNewPayloadSlingshot11 = nwTestData{"PUT",
 	nwURLBase + "/networks/HSN-slingshot11",
 	nwURLBase + "/networks/HSN-slingshot11",
 	json.RawMessage(`{"Name":"HSN-slingshot11","FullName":"High Speed Network slingshot11","IPRanges":["192.168.1.0/28","192.168.2.0/28"],"Type":"slingshot11"}`),
-	sls_common.Network{"HSN", "High Speed Network", []string{"192.168.1.0/28", "192.168.2.0/28"}, "slingshot10", 0, "2014-07-16 20:55:46 +0000 UTC", nil},
+	sls_common.Network{"HSN-slingshot11", "High Speed Network slingshot11", []string{"192.168.1.0/28", "192.168.2.0/28"}, "slingshot10", 0, "2014-07-16 20:55:46 +0000 UTC", nil},
 	http.StatusCreated,
 }
 
@@ -382,7 +382,7 @@ func Test_doNetworkIO(t *testing.T) {
 		logNWTestContext(t, "PUT /networks", nwPutNewPayload)
 	}
 
-	t.Logf("PUT of non-existent network '%s'", nwPutNewPayload.getNWData.Name)
+	t.Logf("PUT of non-existent network '%s'", nwPutNewPayloadSlingshot11.getNWData.Name)
 	psterr, code = doNWSet(nwPutNewPayloadSlingshot11)
 	if psterr != nil {
 		t.Errorf("ERROR PUT /networks non-existent NW test: %v", psterr)
