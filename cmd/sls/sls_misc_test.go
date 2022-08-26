@@ -800,7 +800,23 @@ func TestDoLoadstateInvalid(t *testing.T) {
   },
   "Networks": {
     "Name with space": {
-	  "Name": "Name with space",
+      "Name": "Name with space",
+      "FullName": "High Speed Network",
+      "IPRanges": [
+        "192.168.1.0/28",
+        "192.168.2.0/28"
+      ],
+      "Type": "slingshot10"
+    }
+  }
+}
+`
+	const missingNetworkNameJson = `
+{
+  "Hardware": {
+  },
+  "Networks": {
+    "HSN": {
       "FullName": "High Speed Network",
       "IPRanges": [
         "192.168.1.0/28",
@@ -817,7 +833,7 @@ func TestDoLoadstateInvalid(t *testing.T) {
   },
   "Networks": {
     "HSN": {
-	  "Name": "HSN",
+      "Name": "HSN",
       "FullName": "High Speed Network",
       "IPRanges": [
         "192.168.1.0/28",
@@ -834,6 +850,7 @@ func TestDoLoadstateInvalid(t *testing.T) {
 		{"BadNetworkIPRange", badNetworkIPRangeJson},
 		{"BadNetworkType", badNetworkTypeJson},
 		{"BadNetworkName", badNetworkNameJson},
+		{"MissingNetworkName", missingNetworkNameJson},
 		{"MissingNetworkType", missingNetworkTypeJson},
 	}
 	for _, testCase := range testCases {

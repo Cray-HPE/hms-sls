@@ -51,7 +51,7 @@ func verifyNetworkType(networkType sls_common.NetworkType) error {
 }
 
 func verifyNetworkName(networkName string) error {
-	if strings.Contains(networkName, " ") {
+	if strings.Contains(networkName, " ") || networkName == "" {
 		return InvalidNetworkName
 	}
 
