@@ -116,6 +116,13 @@ var nwPostErrPayloads = []nwTestData{
 		sls_common.Network{"NMN2", "Node Management Network", []string{"", "10.100.2.0/28"}, "ethernet", 0, "2014-07-16 20:55:46 +0000 UTC", nil},
 		http.StatusBadRequest,
 	},
+	nwTestData{"POST", //POST empty network Name
+		nwURLBase + "/networks",
+		nwURLBase + "/networks",
+		json.RawMessage(`{"FullName":"High Speed Network","IPRanges":["192.168.1.0/28","192.168.2.0/28"],"Type":"slingshot11"}`),
+		sls_common.Network{"", "High Speed Network", []string{"192.168.1.0/28", "192.168.2.0/28"}, "slingshot10", 0, "2014-07-16 20:55:46 +0000 UTC", nil},
+		http.StatusBadRequest,
+	},
 }
 
 var nwGetErrPayloads = []nwTestData{
