@@ -370,14 +370,14 @@ OrdRstweaH84Wxjriy/PGWbxUxgPRu0=
       ],
       "Xname": "x1000c3",
       "Type": "comptype_chassis",
-      "Class": "",
+      "Class": "Hill",
       "TypeString": "Chassis"
     },
     "x1000c3s2": {
       "Parent": "x1000c3",
       "Xname": "x1000c3s2",
       "Type": "comptype_compmod",
-      "Class": "",
+      "Class": "Mountain",
       "TypeString": "ComputeModule"
     }
   },
@@ -509,14 +509,14 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
       ],
       "Xname": "x1000c3",
       "Type": "comptype_chassis",
-      "Class": "",
+      "Class": "Hill",
       "TypeString": "Chassis"
     },
     "x1000c3s2": {
       "Parent": "x1000c3",
       "Xname": "x1000c3s2",
       "Type": "comptype_compmod",
-      "Class": "",
+      "Class": "Mountain",
       "TypeString": "ComputeModule"
     }
   },
@@ -602,6 +602,274 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 	}
 	if len(currentNetworks) != 2 {
 		t.Errorf("Datastore has the wrong number of networks: %d", len(currentNetworks))
+	}
+}
+
+func TestDoLoadstateValidate(t *testing.T) {
+	kerr := setupInit(t)
+	if kerr != nil {
+		t.Error("Error with test setup:", kerr)
+	}
+
+	const expectedParent = "x0c0s0"
+	const expectedXname = "x0c0s0b0"
+	const expectedTypeString = "NodeBMC"
+	const expectedType = "comptype_ncard"
+	// Parent, TypeString, and, Typethe will be ignored by loadstate.
+	const slsDump = `
+{
+  "Hardware": {
+    "x0c0s0b0": {
+      "Xname": "x0c0000s0000b0000",
+      "Class": "River",
+      "Parent": "x0",
+      "Type": "NotAType",
+      "TypeString": "NotATypeString",
+      "ExtraProperties": {
+        "IP4addr": "10.1.1.1",
+        "IP6addr": "DHCPv6"
+      }
+    }
+  },
+  "Networks": {
+    "HSN": {
+      "Name": "HSN",
+      "FullName": "High Speed Network",
+      "IPRanges": [
+        "192.168.1.0/28",
+        "192.168.2.0/28"
+      ],
+      "Type": "slingshot10"
+    }
+  }
+}
+`
+	slsDumpReader := strings.NewReader(slsDump)
+
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+
+	fw, err := writer.CreateFormFile("sls_dump", "sls_test_config.json")
+	if err != nil {
+		t.Error("Failed to create form file for dump:", err)
+	}
+	_, err = io.Copy(fw, slsDumpReader)
+	if err != nil {
+		t.Error("Failed to copy form file for dump:", err)
+	}
+
+	writer.Close()
+
+	t.Log("Making request to /loadstate")
+	req, rerr := http.NewRequest("POST", "http://localhost:8080"+API_LOADSTATE, &buf)
+	if rerr != nil {
+		t.Error("ERROR setting up /loadstate request:", rerr)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(doLoadState)
+
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNoContent {
+		t.Errorf("ERROR in /loadstate POST request. Expected: %d, Actual: %d\n", http.StatusNoContent, rr.Code)
+	}
+
+	// Validate hardware
+	currentXnames, err := datastore.GetAllXnames()
+	if err != nil {
+		t.Errorf("Error retrieving database contents: %s", err)
+	}
+	if len(currentXnames) != 1 {
+		t.Errorf("Datastore has the wrong number of xnames. expected: 1, actual: %d, xnames: %v", len(currentXnames), currentXnames)
+	}
+
+	foundXname := false
+	for _, x := range currentXnames {
+		if x == expectedXname {
+			foundXname = true
+		}
+	}
+	if !foundXname {
+		t.Fatalf("Failed to find Xname %s in xnames: %v", expectedXname, currentXnames)
+	}
+	hardware, err := datastore.GetXname(expectedXname)
+	if err != nil {
+		t.Errorf("Error getting hardware for xname %s. error: %v", expectedXname, err)
+	}
+	if hardware.Parent != expectedParent {
+		t.Errorf("Error wrong Parent. expected: %s, actual: %s", expectedParent, hardware.Parent)
+	}
+	if hardware.Type != expectedType {
+		t.Errorf("Error wrong Type. expected: %s, actual: %s", expectedType, hardware.Type)
+	}
+	if hardware.TypeString != expectedTypeString {
+		t.Errorf("Error wrong TypeString. expected: %s, actual: %s", expectedTypeString, hardware.TypeString)
+	}
+
+	// Validate networks
+	currentNetworks, err := datastore.GetAllNetworks()
+	if err != nil {
+		t.Errorf("Error retrieving database network contents: %s", err)
+	}
+	if len(currentNetworks) != 1 {
+		t.Errorf("Datastore has the wrong number of networks. expected: 1, actual: %d", len(currentNetworks))
+	}
+}
+
+func TestDoLoadstateInvalid(t *testing.T) {
+	kerr := setupInit(t)
+	if kerr != nil {
+		t.Error("Error with test setup:", kerr)
+	}
+
+	const badXnameJson = `
+{
+  "Hardware": {
+    "x0c0s0b0": {
+      "Xname": "BadXname",
+      "Class": "River",
+      "ExtraProperties": {
+      }
+    }
+  },
+  "Networks": {
+  }
+}
+`
+	const missingClassJson = `
+{
+  "Hardware": {
+    "x0c0s0b0": {
+      "Xname": "x0c0s0b0",
+      "ExtraProperties": {
+      }
+    }
+  },
+  "Networks": {
+  }
+}
+`
+	const missingXnameJson = `
+{
+  "Hardware": {
+    "x0c0s0b0": {
+      "Class": "River",
+      "ExtraProperties": {
+      }
+    }
+  },
+  "Networks": {
+  }
+}
+`
+	const badNetworkIPRangeJson = `
+{
+  "Hardware": {
+  },
+  "Networks": {
+    "HSN": {
+      "Name": "HSN",
+      "FullName": "High Speed Network",
+      "IPRanges": [
+        "192.168.1.0/28",
+        "192.168.2.0/2890"
+      ],
+      "Type": "slingshot10"
+    }
+  }
+}
+`
+	const badNetworkTypeJson = `
+{
+  "Hardware": {
+  },
+  "Networks": {
+    "HSN": {
+      "Name": "HSN",
+      "FullName": "High Speed Network",
+      "IPRanges": [
+      ],
+      "Type": "junk"
+    }
+  }
+}
+`
+	const badNetworkNameJson = `
+{
+  "Hardware": {
+  },
+  "Networks": {
+    "Name with space": {
+	  "Name": "Name with space",
+      "FullName": "High Speed Network",
+      "IPRanges": [
+        "192.168.1.0/28",
+        "192.168.2.0/28"
+      ],
+      "Type": "slingshot10"
+    }
+  }
+}
+`
+	const missingNetworkTypeJson = `
+{
+  "Hardware": {
+  },
+  "Networks": {
+    "HSN": {
+	  "Name": "HSN",
+      "FullName": "High Speed Network",
+      "IPRanges": [
+        "192.168.1.0/28",
+        "192.168.2.0/28"
+      ]
+    }
+  }
+}
+`
+	testCases := [][]string{
+		{"BadXname", badXnameJson},
+		{"MissingClass", missingClassJson},
+		{"MissingXname", missingXnameJson},
+		{"BadNetworkIPRange", badNetworkIPRangeJson},
+		{"BadNetworkType", badNetworkTypeJson},
+		{"BadNetworkName", badNetworkNameJson},
+		{"MissingNetworkType", missingNetworkTypeJson},
+	}
+	for _, testCase := range testCases {
+		name := testCase[0]
+		slsDump := testCase[1]
+		t.Logf("Testing loadstate with invalid json. TestCase: %s", name)
+
+		slsDumpReader := strings.NewReader(slsDump)
+
+		var buf bytes.Buffer
+		writer := multipart.NewWriter(&buf)
+
+		fw, err := writer.CreateFormFile("sls_dump", "sls_test_config.json")
+		if err != nil {
+			t.Error("Failed to create form file for dump:", err)
+		}
+		_, err = io.Copy(fw, slsDumpReader)
+		if err != nil {
+			t.Error("Failed to copy form file for dump:", err)
+		}
+
+		writer.Close()
+
+		t.Log("Making request to /loadstate")
+		req, rerr := http.NewRequest("POST", "http://localhost:8080"+API_LOADSTATE, &buf)
+		if rerr != nil {
+			t.Error("ERROR setting up /loadstate request:", rerr)
+		}
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+		rr := httptest.NewRecorder()
+		handler := http.HandlerFunc(doLoadState)
+
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("ERROR in /loadstate POST request. Expected: %d, Actual: %d\n", http.StatusBadRequest, rr.Code)
+		}
 	}
 }
 
