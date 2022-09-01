@@ -281,17 +281,21 @@ func getChildrenForXname(xname string) (children []string, err error) {
 func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) {
 	// First, get the base object and all its associated data
 	baseQ := "SELECT \n" +
-		"    xname, \n" +
-		"    parent, \n" +
-		"    comp_type, \n" +
-		"    comp_class, \n" +
-		"    timestamp, \n" +
-		"    extra_properties \n" +
+		"    c1.xname,  \n" +
+		"    c1.parent, \n" +
+		"    c1.comp_type, \n" +
+		"    c1.comp_class,  \n" +
+		"    version_history.timestamp, \n" +
+		"    c1.extra_properties, \n" +
+		"    ARRAY_REMOVE(ARRAY_AGG(distinct c2.xname), NULL) as children \n" +
 		"FROM \n" +
-		"    components \n" +
-		"INNER JOIN \n" +
-		"    version_history \n" +
-		"ON components.last_updated_version = version_history.version"
+		"    components c1 \n" +
+		"INNER JOIN version_history \n" +
+		"    ON c1.last_updated_version = version_history.version \n" +
+		"LEFT JOIN components c2 \n" +
+		"    ON c1.xname = c2.parent \n" +
+		"    GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties"
+
 	baseRows, baseErr := DB.Query(baseQ)
 	if baseErr != nil {
 		err = errors.Errorf("unable to query generic hardware: %s", baseErr)
@@ -308,7 +312,8 @@ func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) 
 			&thisGenericHardware.Type,
 			&thisGenericHardware.Class,
 			&lastUpdated,
-			&extraPropertiesBytes)
+			&extraPropertiesBytes,
+			pq.Array(&thisGenericHardware.Children))
 		if baseErr != nil {
 			err = errors.Errorf("unable to scan base row: %s", baseErr)
 			return
@@ -325,14 +330,6 @@ func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) 
 			return
 		}
 
-		var children []string
-		children, err = getChildrenForXname(thisGenericHardware.Xname)
-		if err != nil {
-			return
-		}
-
-		thisGenericHardware.Children = children
-
 		hardware = append(hardware, thisGenericHardware)
 	}
 
@@ -342,19 +339,23 @@ func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) 
 func GetGenericHardwareFromXname(xname string) (hardware sls_common.GenericHardware, err error) {
 	// First, get the base object and all its associated data
 	baseQ := "SELECT \n" +
-		"    xname, \n" +
-		"    parent, \n" +
-		"    comp_type, \n" +
-		"    comp_class, \n" +
-		"    timestamp, \n" +
-		"    extra_properties \n" +
+		"    c1.xname, \n" +
+		"    c1.parent, \n" +
+		"    c1.comp_type, \n" +
+		"    c1.comp_class, \n" +
+		"    version_history.timestamp, \n" +
+		"    c1.extra_properties, \n" +
+		"    ARRAY_REMOVE(ARRAY_AGG(distinct c2.xname), NULL) as children \n" +
 		"FROM \n" +
-		"    components \n" +
-		"INNER JOIN \n" +
-		"    version_history \n" +
-		"ON components.last_updated_version = version_history.version \n" +
+		"    components c1 \n" +
+		"INNER JOIN version_history \n" +
+		"    ON c1.last_updated_version = version_history.version \n" +
+		"LEFT JOIN components c2 \n" +
+		"    ON c1.xname = c2.parent \n" +
 		"WHERE \n" +
-		"    xname = $1 "
+		"    c1.xname = $1 \n" +
+		"GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties"
+
 	baseRow := DB.QueryRow(baseQ, xname)
 
 	var extraPropertiesBytes []byte
@@ -364,7 +365,8 @@ func GetGenericHardwareFromXname(xname string) (hardware sls_common.GenericHardw
 		&hardware.Type,
 		&hardware.Class,
 		&lastUpdated,
-		&extraPropertiesBytes)
+		&extraPropertiesBytes,
+		pq.Array(&hardware.Children))
 	if baseErr == sql.ErrNoRows {
 		err = NoSuch
 		return
@@ -382,13 +384,6 @@ func GetGenericHardwareFromXname(xname string) (hardware sls_common.GenericHardw
 		err = errors.Errorf("unable to unmarshal extended properties: %s", unmarshalErr)
 		return
 	}
-
-	children, err := getChildrenForXname(hardware.Xname)
-	if err != nil {
-		return
-	}
-
-	hardware.Children = children
 
 	return
 }
