@@ -22,7 +22,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# load-sls.sh; used by runCT.sh to populate SLS with data before running functional tests.
+# load-sls.sh; used by runCT.sh to populate SLS with data before running api tests.
 echo "Initiating..."
 
 HARDWARE_URL="http://cray-sls:8376/v1/hardware"
