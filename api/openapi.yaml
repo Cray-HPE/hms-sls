@@ -336,7 +336,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/xname'
-        description: "The xname to look up or alter."
+          description: "The xname to look up or alter."
 
       responses:
         200:
@@ -551,17 +551,17 @@ paths:
         409:
           description: "Network with that name already exists"
   /networks/{network}:
-    parameters:
-      - in: path
-        name: network
-        required: true
-        schema:
-          type: string
-        description: "The network to look up or alter."
     get:
       tags: ["network"]
       summary: "Retrieve a network item"
       description: "Retrieve the specific network."
+      parameters:
+        - in: path
+          name: network
+          required: true
+          schema:
+            type: string
+          description: "The network to look up or alter."
       responses:
         200:
           description: "Request successful"
@@ -575,6 +575,13 @@ paths:
       tags: ["network", "cli_from_file"]
       summary: "Update a network object"
       description: "Update a network object. Parent objects will be created, if possible."
+      parameters:
+        - in: path
+          name: network
+          required: true
+          schema:
+            type: string
+          description: "The network to look up or alter."
       requestBody:
         content:
           application/json:
@@ -595,6 +602,13 @@ paths:
       tags: ["network"]
       summary: "Delete the named network"
       description: "Delete the specific network from SLS."
+      parameters:
+        - in: path
+          name: network
+          required: true
+          schema:
+            type: string
+          description: "The network to look up or alter."
       responses:
         200:
           description: "OK. Network removed"
