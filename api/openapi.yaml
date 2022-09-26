@@ -324,19 +324,20 @@ paths:
         500:
           description: "Unexpected error. See body for details"
   /hardware/{xname}:
-    parameters:
-      - in: path
-        name: xname
-        required: true
-        schema:
-          $ref: '#/components/schemas/xname'
-        description: "The xname to look up or alter."
     get:
       tags: ["hardware"]
       summary: "Retrieve information about the requested xname"
       description: >-
         Retrieve information about the requested xname. All properties
         are returned as a JSON array.
+      parameters:
+        - in: path
+          name: xname
+          required: true
+          schema:
+            $ref: '#/components/schemas/xname'
+        description: "The xname to look up or alter."
+
       responses:
         200:
           description: "Request successful"
@@ -348,6 +349,13 @@ paths:
       tags: ["hardware"]
       summary: "Update a hardware object"
       description: "Update a hardware object.  Parent objects will be created, if possible."
+      parameters:
+        - in: path
+          name: xname
+          required: true
+          schema:
+            $ref: '#/components/schemas/xname'
+          description: "The xname to look up or alter."
       requestBody:
         content:
           application/json:
@@ -378,6 +386,13 @@ paths:
         parent object, then the children are also deleted from SLS. If the child object happens
         to be a parent, then the deletion can cascade down levels.
         If you delete a child object, it does not affect the parent.
+      parameters:
+        - in: path
+          name: xname
+          required: true
+          schema:
+            $ref: '#/components/schemas/xname'
+          description: "The xname to look up or alter."
       responses:
         200:
           description: "OK. xname removed"
