@@ -24,19 +24,11 @@
 # Author: Andrew Nieuwsma
 # Service: System Layout Service
 
-# HMS test metrics test cases: 4
-# 1. GET /hardware API response code
-# 2. GET /hardware API response body
-# 3. POST /hardware API response code
-# 3. GET /hardware/{xname} API response code
-# 4. GET /hardware/{xname} API response body
 ---
 test_name: slsAPIHardware
 
 stages:
-  # 1. GET /hardware API response code
-  # 2. GET /hardware API response body
-  - name: Ensure that the SLS hardware can be retrieved
+  - name: slsAPIHardwareGETall - Ensure that the SLS hardware can be retrieved
     request:
       url: "{sls_base_url}/v1/hardware"
       method: GET
@@ -176,7 +168,7 @@ stages:
 test_name: slsAPIHardwareXname
 
 stages:
-  - name: slsAPIHardwarePOSTEntry
+  - name: slsAPIHardwarePOSTEntry - create a new entry with good data
     request:
       url: "{sls_base_url}/v1/hardware"
       method: POST
@@ -184,6 +176,14 @@ stages:
       json: {   "Xname": "x9999c7s9b9","Class": "Mountain"}
     response:
       status_code: 201
+  - name: slsAPIHardwarePOSTEntryDuplicateFail - attempt to duplicate an entry
+    request:
+      url: "{sls_base_url}/v1/hardware"
+      method: POST
+      verify: !bool "{verify}"
+      json: {   "Xname": "x9999c7s9b9","Class": "Mountain"}
+    response:
+      status_code: 409
       verify_response_with:
         function: tavern.testutils.helpers:validate_pykwalify
         extra_kwargs:
@@ -191,139 +191,118 @@ stages:
             type: map
             required: True
             mapping:
-              Parent:
+              type:
                 type: str
                 required: True
-                pattern: "^[xs].+"
-              Children:
-                type: seq
-                required: False
-                matching: all
-                sequence:
-                  - type: str
-                    pattern: "^[xs].+"
-              Xname:
+              title:
                 type: str
                 required: True
-                pattern: "^[xs].+"
-              Type:
+              detail:
                 type: str
                 required: True
-                pattern: "^comptype_.+"
-              Class:
-                type: str
-                required: True
-                enum:
-                  - "River"
-                  - "Hill"
-                  - "Mountain"
-              TypeString:
-                type: str
-                required: True
-                #TODO: MgmtHLSwitch not found in this pattern from SLS documentation
-                #pattern: "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
-                pattern: "^CDU$|^CDUMgmtSwitch$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtHLSwitch$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
-              LastUpdated:
+              status:
                 type: int
                 required: True
-              LastUpdatedTime:
+
+  - name: slsAPIHardwarePOSTEntryBadData - attempt to create an entry with bad data
+    request:
+      url: "{sls_base_url}/v1/hardware"
+      method: POST
+      verify: !bool "{verify}"
+      json: { "foo": "x9999c7s9b9","Class": "Mountain" }
+    response:
+      status_code: 400
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              type:
                 type: str
                 required: True
-                pattern: "[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}} [0-9]{{2}}:[0-9]{{2}}:[0-9]{{2}}.[0-9]+ \\+[0-9]{{4}} \\+[0-9]{{4}}|[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}} [0-9]{{2}}:[0-9]{{2}}:[0-9]{{2}}.[0-9]+ \\+[0-9]{{4}} UTC"
-#              ExtraProperties:
-#                type: map
-#                required: False
-#                allowempty: True
-#                mapping:
-#                  Aliases:
-#                    type: seq
-#                    required: False
-#                    matching: all
-#                    sequence:
-#                      - type: str
-#                  Brand:
-#                    type: str
-#                    required: False
-#                  IP4addr:
-#                    type: str
-#                    required: False
-#                  Networks:
-#                    type: map
-#                    required: False
-#                    allowempty: True
-#                    mapping:
-#                      cn:
-#                        type: map
-#                        required: False
-#                        allowempty: True
-#                        mapping:
-#                          HMN:
-#                            type: map
-#                            required: False
-#                            mapping:
-#                              CIDR:
-#                                type: str
-#                                required: True
-#                              Gateway:
-#                                type: str
-#                                required: True
-#                              VLan:
-#                                type: int
-#                                required: True
-#                  NID:
-#                    type: int
-#                    required: False
-#                  NodeNics:
-#                    type: seq
-#                    required: False
-#                    matching: all
-#                    sequence:
-#                      - type: str
-#                        pattern: "^[xs].+"
-#                  Password:
-#                    type: str
-#                    required: False
-#                  Role:
-#                    type: str
-#                    required: False
-#                  SNMPAuthPassword:
-#                    type: str
-#                    required: False
-#                  SNMPAuthProtocol:
-#                    type: str
-#                    required: False
-#                  SNMPPrivPassword:
-#                    type: str
-#                    required: False
-#                  SNMPPrivProtocol:
-#                    type: str
-#                    required: False
-#                  SNMPUsername:
-#                    type: str
-#                    required: False
-#                  SubRole:
-#                    type: str
-#                    required: False
-#                  Username:
-#                    type: str
-#                    required: False
-#                  VendorName:
-#                    type: str
-#                    required: False
-      #TODO: returns no response body, Swagger says it will have a response body
-#  - name: Get an xname from the HSM Components collection to use in the next stage
-#    request:
-#      url: "{hsm_base_url}/hsm/v2/State/Components?type=Node"
-#      method: GET
-#      verify: !bool "{verify}"
-#    response:
-#      status_code: 200
-#      save:
-#        json:
-#          xname: Components[0].ID
+              title:
+                type: str
+                required: True
+              detail:
+                type: str
+                required: True
+              status:
+                type: int
+                required: True
 
-  # 3. GET /hardware/{xname} API response code
-  # 4. GET /hardware/{xname} API response body
+  - name: slsAPIHardwarePUTexisting - update and existing entry
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
+      method: PUT
+      verify: !bool "{verify}"
+      json: { "Class": "River" }
+    response:
+      status_code: 200
+  - name: slsAPIHardwarePUTNew - Create a new entry with put
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b8"
+      method: PUT
+      verify: !bool "{verify}"
+      json: { "Class": "Mountain" }
+    response:
+      status_code: 201
+  - name: slsAPIHardwarePUTNewBadData - Attempt to put a new entry with bad data
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b8"
+      method: PUT
+      verify: !bool "{verify}"
+      json: { "foo": "x9999c7s9b9","bar": "Mountain" }
+    response:
+      status_code: 400
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              type:
+                type: str
+                required: True
+              title:
+                type: str
+                required: True
+              detail:
+                type: str
+                required: True
+              status:
+                type: int
+                required: True
+  - name: slsAPIHardwarePUTExistingBadData - Attempt to update an entry with bad keys
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
+      method: PUT
+      verify: !bool "{verify}"
+      json: { "foo": "x9999c7s9b9","bar": "Mountain" }
+    response:
+      status_code: 400
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              type:
+                type: str
+                required: True
+              title:
+                type: str
+                required: True
+              detail:
+                type: str
+                required: True
+              status:
+                type: int
+                required: True
+
   - name: slsAPIHardwareGETEntry - Ensure that the SLS hardware for a specific xname can be retrieved
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
@@ -457,18 +436,90 @@ stages:
                   VendorName:
                     type: str
                     required: False
-  - name: slsAPIHardwareDELETEntry
+  - name: slsAPIHardwareGETEntryNotFound - Get an entry that does not exist
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b999"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 404
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              type:
+                type: str
+                required: True
+              title:
+                type: str
+                required: True
+              detail:
+                type: str
+                required: True
+              status:
+                type: int
+                required: True
+  - name: slsAPIHardwareDELETEntry - Delete a known good entry
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
       method: DELETE
       verify: !bool "{verify}"
     response:
       status_code: 200
-  - name: slsAPIHardwareDELETEntryAgainFail
+  - name: slsAPIHardwareDELETEntryAgainFail - Delete a previously deleted entry
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
       method: DELETE
       verify: !bool "{verify}"
     response:
       status_code: 404
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              type:
+                type: str
+                required: True
+              title:
+                type: str
+                required: True
+              detail:
+                type: str
+                required: True
+              status:
+                type: int
+                required: True
+  - name: slsAPIHardwareDELETNotFound - Delete an entry that does not exist
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b999"
+      method: DELETE
+      verify: !bool "{verify}"
+    response:
+      status_code: 404
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              type:
+                type: str
+                required: True
+              title:
+                type: str
+                required: True
+              detail:
+                type: str
+                required: True
+              status:
+                type: int
+                required: True
+
 
