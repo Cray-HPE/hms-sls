@@ -167,7 +167,20 @@ stages:
 ---
 test_name: slsAPIHardwareXname
 
+
+
 stages:
+
+  - name: slsAPIHardwareDELETEntry - Delete the entry if it exists
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
+      method: DELETE
+      verify: !bool "{verify}"
+  - name: slsAPIHardwareDELETEntry - Delete the entry if it exists
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b8"
+      method: DELETE
+      verify: !bool "{verify}"
   - name: slsAPIHardwarePOSTEntry - create a new entry with good data
     request:
       url: "{sls_base_url}/v1/hardware"
