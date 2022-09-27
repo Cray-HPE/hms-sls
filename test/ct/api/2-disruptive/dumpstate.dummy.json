@@ -1,0 +1,19 @@
+[
+  {
+    "Hardware": [
+      {
+        "Xname": "x9999c7s9b9",
+        "Class": "Mountain"
+      }
+    ],
+    "Networks": [
+      {
+        "Name": "dummy",
+        "IPRanges": [
+          "127.0.0.1/8"
+        ],
+        "Type": "ethernet"
+      }
+    ]
+  }
+]
