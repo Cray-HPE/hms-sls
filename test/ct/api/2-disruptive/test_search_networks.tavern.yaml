@@ -44,7 +44,6 @@ stages:
     response:
       status_code: 201
 
-
   - name: slsAPISearchNetworksNameFound - Search the networks for a specific name
     request:
       url: "{sls_base_url}/v1/search/networks?name=dummy"
@@ -81,7 +80,6 @@ stages:
                     type: str
                     required: True
                     pattern: "[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}} [0-9]{{2}}:[0-9]{{2}}:[0-9]{{2}}.[0-9]+ \\+[0-9]{{4}} \\+[0-9]{{4}}|[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}} [0-9]{{2}}:[0-9]{{2}}:[0-9]{{2}}.[0-9]+ \\+[0-9]{{4}} UTC"
-
 
   - name: slsAPISearchNetworksFullNameFound - Search the networks for a specific fullname
     request:

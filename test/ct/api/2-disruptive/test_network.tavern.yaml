@@ -28,6 +28,7 @@
 test_name: slsAPINetworks
 
 stages:
+
   - name: Ensure that the SLS networks can be retrieved
     request:
       url: "{sls_base_url}/v1/networks"
@@ -153,6 +154,7 @@ stages:
       save:
         json:
           network: "[0].Name"
+
 ---
 test_name: slsAPINetworksEntry
 
@@ -163,11 +165,13 @@ stages:
       url: "{sls_base_url}/v1/networks/dummy"
       method: DELETE
       verify: !bool "{verify}"
+
   - name: slsAPINetworksDELETEntry - Delete the entry if it exists
     request:
       url: "{sls_base_url}/v1/networks/dummy2"
       method: DELETE
       verify: !bool "{verify}"
+
   - name: slsAPINetworksPOSTEntry - create a new entry with good data
     request:
       url: "{sls_base_url}/v1/networks"
@@ -176,6 +180,7 @@ stages:
       json: {   "Name": "dummy","Type": "ethernet", "IPRanges":["127.0.0.1/8"]}
     response:
       status_code: 201
+
   - name: slsAPINetworksPOSTEntryDuplicateFail - attempt to duplicate an entry
     request:
       url: "{sls_base_url}/v1/networks"
@@ -206,6 +211,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPINetworksPOSTEntryBadData - attempt to create an entry with bad data
     request:
       url: "{sls_base_url}/v1/networks"
@@ -236,6 +242,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPINetworksPUTexisting - update and existing entry
     request:
       url: "{sls_base_url}/v1/networks/dummy"
@@ -244,6 +251,7 @@ stages:
       json: { "Name": "dummy","Type": "OPA", "IPRanges":["127.0.0.1/8"] }
     response:
       status_code: 200
+
   - name: slsAPINetworksPUTNew - Create a new entry with put
     request:
       url: "{sls_base_url}/v1/networks/dummy2"
@@ -252,6 +260,7 @@ stages:
       json: { "Name": "dummy","Type": "OPA", "IPRanges":["127.0.0.1/8"]  }
     response:
       status_code: 200
+
   - name: slsAPINetworksPUTNewBadData - Attempt to put a new entry with bad data
     request:
       url: "{sls_base_url}/v1/networks/dummy3"
@@ -282,6 +291,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPINetworksPUTExistingBadData - Attempt to update an entry with bad keys
     request:
       url: "{sls_base_url}/v1/networks/dummy"
@@ -432,6 +442,7 @@ stages:
                     matching: all
                     sequence:
                       - type: int
+
   - name: slsAPINetworksGETEntryNotFound - Get an entry that does not exist
     request:
       url: "{sls_base_url}/v1/networks/x9999c7s9b999"
@@ -461,6 +472,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPINetworksDELETEntry - Delete a known good entry
     request:
       url: "{sls_base_url}/v1/networks/dummy"
@@ -468,6 +480,7 @@ stages:
       verify: !bool "{verify}"
     response:
       status_code: 200
+
   - name: slsAPINetworksDELETEntryAgainFail - Delete a previously deleted entry
     request:
       url: "{sls_base_url}/v1/networks/dummy"
@@ -497,6 +510,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPINetworksDELETNotFound - Delete an entry that does not exist
     request:
       url: "{sls_base_url}/v1/networks/dummynofound"
@@ -526,5 +540,6 @@ stages:
               status:
                 type: int
                 required: True
+
 
 

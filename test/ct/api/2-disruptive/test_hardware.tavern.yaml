@@ -28,6 +28,7 @@
 test_name: slsAPIHardware
 
 stages:
+
   - name: slsAPIHardwareGETall - Ensure that the SLS hardware can be retrieved
     request:
       url: "{sls_base_url}/v1/hardware"
@@ -164,10 +165,10 @@ stages:
                       VendorName:
                         type: str
                         required: False
+
+
 ---
 test_name: slsAPIHardwareXname
-
-
 
 stages:
 
@@ -176,11 +177,13 @@ stages:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
       method: DELETE
       verify: !bool "{verify}"
+
   - name: slsAPIHardwareDELETEntry - Delete the entry if it exists
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b8"
       method: DELETE
       verify: !bool "{verify}"
+
   - name: slsAPIHardwarePOSTEntry - create a new entry with good data
     request:
       url: "{sls_base_url}/v1/hardware"
@@ -189,6 +192,7 @@ stages:
       json: {   "Xname": "x9999c7s9b9","Class": "Mountain"}
     response:
       status_code: 201
+
   - name: slsAPIHardwarePOSTEntryDuplicateFail - attempt to duplicate an entry
     request:
       url: "{sls_base_url}/v1/hardware"
@@ -253,6 +257,7 @@ stages:
       json: { "Class": "River" }
     response:
       status_code: 200
+
   - name: slsAPIHardwarePUTNew - Create a new entry with put
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b8"
@@ -261,6 +266,7 @@ stages:
       json: { "Class": "Mountain" }
     response:
       status_code: 201
+
   - name: slsAPIHardwarePUTNewBadData - Attempt to put a new entry with bad data
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b8"
@@ -288,6 +294,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPIHardwarePUTExistingBadData - Attempt to update an entry with bad keys
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
@@ -449,6 +456,7 @@ stages:
                   VendorName:
                     type: str
                     required: False
+
   - name: slsAPIHardwareGETEntryNotFound - Get an entry that does not exist
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b999"
@@ -475,6 +483,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPIHardwareDELETEntry - Delete a known good entry
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
@@ -482,6 +491,7 @@ stages:
       verify: !bool "{verify}"
     response:
       status_code: 200
+
   - name: slsAPIHardwareDELETEntryAgainFail - Delete a previously deleted entry
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
@@ -508,6 +518,7 @@ stages:
               status:
                 type: int
                 required: True
+
   - name: slsAPIHardwareDELETNotFound - Delete an entry that does not exist
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b999"
