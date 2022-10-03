@@ -26,7 +26,7 @@
 echo "Initiating..."
 URL="http://cray-smd:27779/hsm/v2/State/Components"
 sentry=1
-limit=200
+limit=400
 while :; do
   length=$(curl --silent ${URL} | jq '.Components | length')
 
