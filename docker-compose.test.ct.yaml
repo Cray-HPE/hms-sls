@@ -8,27 +8,21 @@ services:
     build:
       context: test/ct/
       dockerfile: Dockerfile.wait-for-smd.Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
+
     networks:
       - sls
   helper-load-sls:
     build:
       context: test/ct/
       dockerfile: Dockerfile.load-sls.Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
+
     networks:
       - sls
   tavern:
     build:
       context: test/ct/
       dockerfile: Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
+
     entrypoint: entrypoint.sh tavern -c /src/app/tavern_global_config_ct_test.yaml -p /src/app/api
     networks:
       - sls
@@ -36,9 +30,7 @@ services:
     build:
       context: test/ct/
       dockerfile: Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
+
     entrypoint: entrypoint.sh smoke -f smoke.json -u http://cray-sls:8376
     networks:
       - sls
