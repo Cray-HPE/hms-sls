@@ -4,41 +4,33 @@ networks:
   sls:
 
 services:
-  ct-tests-functional-wait-for-smd:
+  wait-for-smd:
     build:
       context: test/ct/
       dockerfile: Dockerfile.wait-for-smd.Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
+
     networks:
       - sls
-  ct-tests-functional-load-sls:
+  helper-load-sls:
     build:
       context: test/ct/
       dockerfile: Dockerfile.load-sls.Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
+
     networks:
       - sls
-  ct-tests-functional:
+  tavern:
     build:
       context: test/ct/
       dockerfile: Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
-    entrypoint: entrypoint.sh functional -c /src/app/tavern_global_config_ct_test.yaml -p /src/app
+
+    entrypoint: entrypoint.sh tavern -c /src/app/tavern_global_config_ct_test.yaml -p /src/app/api
     networks:
       - sls
-  ct-tests-smoke:
+  smoke:
     build:
       context: test/ct/
       dockerfile: Dockerfile
-    depends_on:
-      - cray-sls
-      - cray-smd
+
     entrypoint: entrypoint.sh smoke -f smoke.json -u http://cray-sls:8376
     networks:
       - sls
@@ -124,7 +116,7 @@ services:
     networks:
       - sls
   cray-smd:
-    image: artifactory.algol60.net/csm-docker/stable/cray-smd:1.48.0
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:1.58.0
     environment:
       - POSTGRES_HOST=hmsds-postgres
       - POSTGRES_PORT=5432
@@ -144,7 +136,7 @@ services:
     networks:
       - sls
   cray-smd-init:
-    image: artifactory.algol60.net/csm-docker/stable/cray-smd:1.48.0
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:1.58.0
     environment:
       - SMD_DBHOST=hmsds-postgres
       - SMD_DBPORT=5432

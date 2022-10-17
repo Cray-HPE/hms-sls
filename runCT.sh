@@ -34,8 +34,8 @@ echo "COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}"
 echo "COMPOSE_FILE: $COMPOSE_FILE"
 
 function cleanup() {
-  docker-compose down
-  if [[ $? -ne 0 ]]; then
+  echo "Cleaning up containers..."
+  if ! docker compose down --remove-orphans; then
     echo "Failed to decompose environment!"
     exit 1
   fi
@@ -45,35 +45,24 @@ function cleanup() {
 
 # Get the base containers running
 echo "Starting containers..."
-docker-compose build --no-cache
-docker-compose up -d cray-sls
+docker compose build --no-cache
+docker compose up -d cray-sls
 
 sleep 10
-docker-compose up --exit-code-from ct-tests-smoke ct-tests-smoke
-test_result=$?
-echo "Cleaning up containers..."
-if [[ $test_result -ne 0 ]]; then
+if ! docker compose up --exit-code-from smoke smoke; then
   echo "CT smoke tests FAILED!"
   cleanup 1
 fi
 
 # wait for containers to stabilize and simulated HSM hardware discoveries to complete
-docker-compose up -d ct-tests-functional-wait-for-smd
-docker wait ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
-docker logs ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
+docker compose up --exit-code-from wait-for-smd wait-for-smd
 
 # load mock hardware and network data into SLS
-docker-compose up -d ct-tests-functional-load-sls
-docker wait ${COMPOSE_PROJECT_NAME}_ct-tests-functional-load-sls_1
-docker logs ${COMPOSE_PROJECT_NAME}_ct-tests-functional-load-sls_1
+docker compose up --exit-code-from helper-load-sls helper-load-sls
 
 # execute the CT functional tests
-docker-compose up --exit-code-from ct-tests-functional ct-tests-functional
-test_result=$?
-# Clean up
-echo "Cleaning up containers..."
-if [[ $test_result -ne 0 ]]; then
-  echo "CT functional tests FAILED!"
+if ! docker compose up --exit-code-from tavern tavern; then
+  echo "CT tavern tests FAILED!"
   cleanup 1
 fi
 

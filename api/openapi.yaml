@@ -324,19 +324,20 @@ paths:
         500:
           description: "Unexpected error. See body for details"
   /hardware/{xname}:
-    parameters:
-      - in: path
-        name: xname
-        required: true
-        schema:
-          $ref: '#/components/schemas/xname'
-        description: "The xname to look up or alter."
     get:
       tags: ["hardware"]
       summary: "Retrieve information about the requested xname"
       description: >-
         Retrieve information about the requested xname. All properties
         are returned as a JSON array.
+      parameters:
+        - in: path
+          name: xname
+          required: true
+          schema:
+            $ref: '#/components/schemas/xname'
+          description: "The xname to look up or alter."
+
       responses:
         200:
           description: "Request successful"
@@ -348,6 +349,13 @@ paths:
       tags: ["hardware"]
       summary: "Update a hardware object"
       description: "Update a hardware object.  Parent objects will be created, if possible."
+      parameters:
+        - in: path
+          name: xname
+          required: true
+          schema:
+            $ref: '#/components/schemas/xname'
+          description: "The xname to look up or alter."
       requestBody:
         content:
           application/json:
@@ -378,6 +386,13 @@ paths:
         parent object, then the children are also deleted from SLS. If the child object happens
         to be a parent, then the deletion can cascade down levels.
         If you delete a child object, it does not affect the parent.
+      parameters:
+        - in: path
+          name: xname
+          required: true
+          schema:
+            $ref: '#/components/schemas/xname'
+          description: "The xname to look up or alter."
       responses:
         200:
           description: "OK. xname removed"
@@ -536,17 +551,17 @@ paths:
         409:
           description: "Network with that name already exists"
   /networks/{network}:
-    parameters:
-      - in: path
-        name: network
-        required: true
-        schema:
-          type: string
-        description: "The network to look up or alter."
     get:
       tags: ["network"]
       summary: "Retrieve a network item"
       description: "Retrieve the specific network."
+      parameters:
+        - in: path
+          name: network
+          required: true
+          schema:
+            type: string
+          description: "The network to look up or alter."
       responses:
         200:
           description: "Request successful"
@@ -560,6 +575,13 @@ paths:
       tags: ["network", "cli_from_file"]
       summary: "Update a network object"
       description: "Update a network object. Parent objects will be created, if possible."
+      parameters:
+        - in: path
+          name: network
+          required: true
+          schema:
+            type: string
+          description: "The network to look up or alter."
       requestBody:
         content:
           application/json:
@@ -580,6 +602,13 @@ paths:
       tags: ["network"]
       summary: "Delete the named network"
       description: "Delete the specific network from SLS."
+      parameters:
+        - in: path
+          name: network
+          required: true
+          schema:
+            type: string
+          description: "The network to look up or alter."
       responses:
         200:
           description: "OK. Network removed"
@@ -597,10 +626,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  oneOf:
-                    - $ref: '#/components/schemas/slsState'
+                $ref: '#/components/schemas/slsState'
         500:
           description: "An error occurred in state dumping.  See body for details"
     post:
@@ -626,10 +652,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  oneOf:
-                    - $ref: '#/components/schemas/slsState'
+                $ref: '#/components/schemas/slsState'
         500:
           description: "An error occurred in state dumping.  See body for details"
   /loadstate:
@@ -1015,12 +1038,12 @@ components:
       type: object
       properties:
         Hardware:
-          type: array
-          items:
+          type: object
+          additionalProperties:
             $ref: '#/components/schemas/hardware'
         Networks:
-          type: array
-          items:
+          type: object
+          additionalProperties:
             $ref: '#/components/schemas/network'
 
     Problem7807:
