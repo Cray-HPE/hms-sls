@@ -4,9 +4,7 @@ go 1.16
 
 require (
 	github.com/Cray-HPE/hms-base/v2 v2.0.1
-	github.com/Cray-HPE/hms-compcredentials v1.11.2
 	github.com/Cray-HPE/hms-s3 v1.9.2
-	github.com/Cray-HPE/hms-securestorage v1.12.2
 	github.com/Cray-HPE/hms-xname v1.1.0
 	github.com/aws/aws-sdk-go v1.32.4
 	github.com/golang-migrate/migrate/v4 v4.13.0

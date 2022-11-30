@@ -96,23 +96,15 @@ services:
       - POSTGRES_HOST=postgres
       - DBOPTS=sslmode=disable
       - DBUSER=slsuser
-      - CRAY_VAULT_AUTH_PATH=auth/token/create
-      - CRAY_VAULT_ROLE_FILE=configs/namespace
-      - CRAY_VAULT_JWT_FILE=configs/token
-      - VAULT_ADDR=http://vault:8200
-      - VAULT_TOKEN=hms
-      - VAULT_KEYPATH=hms-creds
     ports:
       - "8376:8376"
     depends_on:
       - s3-init
       - postgres
       - sls-init
-      - vault
       - cray-smd
       - cray-hms-hmcollector
       - redfish-simulator
-      - vault-kv-enabler
     networks:
       - sls
   cray-smd:
@@ -133,6 +125,7 @@ services:
     depends_on:
       - cray-smd-init
       - vault
+      - vault-kv-enabler
     networks:
       - sls
   cray-smd-init:

@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@ import (
 	"strings"
 	"syscall"
 
-	compcredentials "github.com/Cray-HPE/hms-compcredentials"
 	"github.com/namsral/flag"
 
 	"github.com/Cray-HPE/hms-sls/internal/database"
@@ -65,10 +64,8 @@ const (
 var httpAddr string
 var debugLevel int
 
-var vaultEnabled bool
 var vaultKeypath string
 
-var compCredStore compcredentials.CompCredStore
 var Running = true
 
 // Generate the API routes
@@ -188,7 +185,7 @@ func generateRoutes() Routes {
 		Route{"doDumpStateWithVaultData",
 			strings.ToUpper("Post"),
 			API_DUMPSTATE,
-			doDumpState,
+			doPostDumpState,
 		},
 		Route{"doLoadState",
 			strings.ToUpper("Post"),
@@ -230,9 +227,6 @@ func main() {
 	flag.StringVar(&httpAddr, "http_listen_addr", ":8376",
 		"The address (in [address]:port) on which to expose SLS's HTTP interface")
 	flag.IntVar(&debugLevel, "debug", 0, "Debug level")
-	flag.BoolVar(&vaultEnabled, "vault_enabled", true, "Should vault be used for credentials?")
-	flag.StringVar(&vaultKeypath, "vault_keypath", "secret/hms-creds",
-		"Keypath for Vault credentials.")
 	flag.Parse()
 	envVars()
 
@@ -270,10 +264,6 @@ func main() {
 	if err != nil {
 		// The NewDatabase method will try forever to connect, if we get to this point it really is time to panic.
 		panic(err)
-	}
-
-	if vaultEnabled {
-		setupVault()
 	}
 
 	log.Printf("INFO: Beginning to serve HTTP")

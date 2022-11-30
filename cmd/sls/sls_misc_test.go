@@ -188,7 +188,7 @@ func TestDoHealthGet(t *testing.T) {
 	}
 
 	//Initial should be "Not enabled", "Ready"
-	expVal := HealthResponse{Vault: "Not enabled", DBConnection: "Ready"}
+	expVal := HealthResponse{Vault: "Not checked", DBConnection: "Ready"}
 	if jdata != expVal {
 		t.Errorf("ERROR, mismatch in initial /health data, exp:\n%v\ngot:\n%v\n",
 			expVal, jdata)
@@ -291,6 +291,7 @@ func TestDoLoadstateWithKey(t *testing.T) {
 	sampleNw := sls_common.Network{"DUMMY", "Sample dummy network", []string{}, sls_common.NetworkTypeEthernet, 0, "2014-07-16 20:55:46 +0000 UTC", nil}
 	datastore.SetNetwork(sampleNw)
 
+	// The private key support was removed, but the key can still be passed in. Now it is just ignored.
 	// Build the multipart form files necessary for the public key and dump.
 	const privateKeyPEM = `
 -----BEGIN PRIVATE KEY-----

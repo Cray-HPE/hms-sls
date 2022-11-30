@@ -24,24 +24,15 @@ package main
 
 import (
 	"bytes"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
-	"hash"
 	"io"
 	"log"
 	"net/http"
-	"reflect"
 
 	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
 	"github.com/Cray-HPE/hms-xname/xnametypes"
 
-	compcredentials "github.com/Cray-HPE/hms-compcredentials"
 	"github.com/Cray-HPE/hms-sls/internal/database"
 
 	base "github.com/Cray-HPE/hms-base/v2"
@@ -166,20 +157,8 @@ func doHealthGet(w http.ResponseWriter, r *http.Request) {
 
 	var stats HealthResponse
 
-	// Check the vault
-	// NOTE: may be dangerous to check something in the vault - needed?
-	if vaultEnabled {
-		if compCredStore.SS == nil {
-			log.Printf("INFO: Vault enabled but not initialized")
-			stats.Vault = "Enabled but not initialized"
-		} else {
-			log.Printf("INFO: Vault enabled and initialized")
-			stats.Vault = "Enabled and initialized"
-		}
-	} else {
-		log.Printf("INFO: Vault not enabled")
-		stats.Vault = "Not enabled"
-	}
+	// Vault is no longer used by SLS
+	stats.Vault = "Not checked"
 
 	//Check that ETCD/DB connection is available
 	if database.DB == nil {
@@ -266,15 +245,23 @@ func doReadinessGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//  /dumpstate API
+// POST /dumpstate API
+// This used to be supported but is no longer supported.
+func doPostDumpState(w http.ResponseWriter, r *http.Request) {
+	pdet := base.NewProblemDetails("about: blank",
+		"Method Not Allowed",
+		"POST for dumpstate is not supported. Use GET instead.",
+		r.URL.Path, http.StatusMethodNotAllowed)
+	base.SendProblemDetails(w, pdet, 0)
+	return
+}
 
+// GET /dumpstate API
 func doDumpState(w http.ResponseWriter, r *http.Request) {
 	ret := sls_common.SLSState{
 		Hardware: make(map[string]sls_common.GenericHardware),
 		Networks: make(map[string]sls_common.Network),
 	}
-	var shaHash hash.Hash
-	var publicKey *rsa.PublicKey
 
 	allHardware, err := datastore.GetAllHardware()
 	if err != nil {
@@ -287,112 +274,7 @@ func doDumpState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Only go to the trouble of getting the public key if it was POST'd.
-	if r.Method == "POST" {
-		// Check to see if we've been given a key to encrypt with.
-		publicKeyFile, _, publicKeyErr := r.FormFile("public_key")
-		if publicKeyErr == http.ErrMissingFile {
-			log.Println("WARNING: Public key not provided, not encrypting or providing any Vault data")
-		} else if publicKeyErr != nil {
-			log.Println("ERROR: Unable to parse public key form file: ", publicKeyErr)
-			pdet := base.NewProblemDetails("about: blank",
-				"Bad Request",
-				"Unable to parse public key form file",
-				r.URL.Path, http.StatusBadRequest)
-			base.SendProblemDetails(w, pdet, 0)
-			return
-		} else {
-			var buf bytes.Buffer
-			io.Copy(&buf, publicKeyFile)
-			publicKeyString := buf.String()
-			publicKeyFile.Close()
-
-			if publicKeyString == "" {
-				log.Println("ERROR: POST to dumpState with blank public key")
-				pdet := base.NewProblemDetails("about: blank",
-					"Bad Request",
-					"Public key must be included as form data when POSTing to dumpState",
-					r.URL.Path, http.StatusBadRequest)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-
-			shaHash = sha256.New()
-
-			block, _ := pem.Decode([]byte(publicKeyString))
-			if block == nil {
-				log.Println("ERROR: unable to decode public key")
-				pdet := base.NewProblemDetails("about: blank",
-					"Unsupported Media Type",
-					"Failed to decode public key",
-					r.URL.Path, http.StatusUnsupportedMediaType)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-
-			publicKeyInterface, parseErr := x509.ParsePKIXPublicKey(block.Bytes)
-			if parseErr != nil {
-				log.Println("ERROR: unable to parse public key using the x509.ParsePKIXPublicKey method")
-				pdet := base.NewProblemDetails("about: blank",
-					"Unsupported Media Type",
-					"Failed to parse public key",
-					r.URL.Path, http.StatusUnsupportedMediaType)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-
-			publicKey = publicKeyInterface.(*rsa.PublicKey)
-		}
-	}
-
 	for _, hardware := range allHardware {
-		if vaultEnabled && publicKey != nil {
-			credentials, credErr := compCredStore.GetCompCred(hardware.Xname)
-			if credErr != nil {
-				log.Println("ERROR: unable to get credentials for hardware:", credErr)
-				pdet := base.NewProblemDetails("about: blank",
-					"Internal Server Error",
-					"Failed to get credentials for hardware",
-					r.URL.Path, http.StatusInternalServerError)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-
-			// Ensure there is actually something in Vault and we didn't just get back an empty structure.
-			if reflect.DeepEqual(credentials, compcredentials.CompCredentials{}) {
-				hardware.VaultData = nil
-			} else {
-				// Marshal just the Vault credentials JSON into a byte array for encrypting.
-				vaultBytes, marshalErr := json.Marshal(credentials)
-				if marshalErr != nil {
-					log.Println("ERROR: unable to marshal credentials:", marshalErr)
-					pdet := base.NewProblemDetails("about: blank",
-						"Internal Server Error",
-						"Failed to marshal credentials",
-						r.URL.Path, http.StatusInternalServerError)
-					base.SendProblemDetails(w, pdet, 0)
-					return
-				}
-
-				// Encrypt using the public key given to us.
-				encryptedBytes, encryptErr := rsa.EncryptOAEP(shaHash, rand.Reader, publicKey, vaultBytes, nil)
-				if encryptErr != nil {
-					log.Println("ERROR: unable to encrypt credentials:", encryptErr)
-					pdet := base.NewProblemDetails("about: blank",
-						"Internal Server Error",
-						"Failed to encrypt credentials",
-						r.URL.Path, http.StatusInternalServerError)
-					base.SendProblemDetails(w, pdet, 0)
-					return
-				}
-
-				// Now create a base64 representation of the encrypted bytes.
-				base64EncryptedStringEncoded := base64.StdEncoding.EncodeToString(encryptedBytes)
-
-				hardware.VaultData = base64EncryptedStringEncoded
-			}
-		}
-
 		ret.Hardware[hardware.Xname] = hardware
 	}
 
@@ -424,65 +306,12 @@ func doDumpState(w http.ResponseWriter, r *http.Request) {
 
 func doLoadState(w http.ResponseWriter, r *http.Request) {
 	var inputData sls_common.SLSState
-	var shaHash hash.Hash
-	var privateKey *rsa.PrivateKey
 	var buf bytes.Buffer
 
-	// Check to see if we've been given a key to encrypt with.
-	privateKeyFile, _, privateKeyErr := r.FormFile("private_key")
-	if privateKeyErr == http.ErrMissingFile {
-		log.Println("WARNING: loadstate: No private key provided, ignoring any encrypted blocks.")
-	} else if privateKeyErr != nil {
-		log.Println("ERROR: loadstate: Unable to parse private key form file: ", privateKeyErr)
-		pdet := base.NewProblemDetails("about: blank",
-			"Bad Request",
-			"Unable to parse private key form file",
-			r.URL.Path, http.StatusBadRequest)
-		base.SendProblemDetails(w, pdet, 0)
-		return
-	} else {
-		io.Copy(&buf, privateKeyFile)
-		privateKeyString := buf.String()
-		privateKeyFile.Close()
-		buf.Reset()
-
-		if privateKeyString == "" {
-			log.Println("ERROR: loadstate: POST to dumpState with blank private key")
-			pdet := base.NewProblemDetails("about: blank",
-				"Bad Request",
-				"Private key must be included as form data when POSTing to loadState",
-				r.URL.Path, http.StatusBadRequest)
-			base.SendProblemDetails(w, pdet, 0)
-			return
-		}
-
-		// Now just need to convert the private key string into a RSA private key.
-		block, _ := pem.Decode([]byte(privateKeyString))
-		if block == nil {
-			log.Println("ERROR: loadstate: unable to decode private key")
-			pdet := base.NewProblemDetails("about: blank",
-				"Unsupported Media Type",
-				"Failed to decode private key",
-				r.URL.Path, http.StatusUnsupportedMediaType)
-			base.SendProblemDetails(w, pdet, 0)
-			return
-		}
-
-		// This requires an RSA generated private key. Best to use openssl for it:
-		// openssl rsa -in private.pem -outform PEM -pubout -out public.pem
-		privateKeyInterface, parseErr := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if parseErr != nil {
-			log.Println("ERROR: loadstate: unable to parse private key")
-			pdet := base.NewProblemDetails("about: blank",
-				"Unsupported Media Type",
-				"Failed to parse private key",
-				r.URL.Path, http.StatusUnsupportedMediaType)
-			base.SendProblemDetails(w, pdet, 0)
-			return
-		}
-
-		privateKey = privateKeyInterface.(*rsa.PrivateKey)
-
+	// Check for the deprecated and ignored private_key form file
+	_, _, privateKeyErr := r.FormFile("private_key")
+	if privateKeyErr != http.ErrMissingFile || privateKeyErr == nil {
+		log.Println("INFO: loadstate: Ignoring the private_key option, which is no longer supported.")
 	}
 
 	// Now get the config file to read back in.
@@ -512,6 +341,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	containsVaultData := false
 	// Validate hardware
 	for i, h := range inputData.Hardware {
 		originalXname := h.Xname
@@ -579,7 +409,15 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 			log.Printf("ERROR: loadstate: invalid hardware: %s - %s\n", pdet.Title, pdet.Detail)
 			return
 		}
+		if h.VaultData != nil {
+			containsVaultData = true
+			h.VaultData = nil
+		}
 		inputData.Hardware[i] = h
+	}
+
+	if containsVaultData {
+		log.Println("INFO: loadstate: Ignoring VaultData. Loading the vault data is no longer supported.")
 	}
 
 	// Validate networks
@@ -597,63 +435,10 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Finally we are ready to put the info back into the database.
-	shaHash = sha256.New()
 	var hardware []sls_common.GenericHardware
 	var networks []sls_common.Network
 
-	// Loop through all of the provided hardware looking for those with Vault details that need to go back.
 	for _, obj := range inputData.Hardware {
-		if vaultEnabled && obj.VaultData != nil && privateKey != nil {
-			// Decode the base64 encoded string.
-			base64EncryptedStringDecoded, decodeErr := base64.StdEncoding.DecodeString(obj.VaultData.(string))
-			if decodeErr != nil {
-				log.Println("ERROR: loadstate: unable to decode credentials:", decodeErr)
-				pdet := base.NewProblemDetails("about: blank",
-					"Internal Server Error",
-					"Failed to decode credentials",
-					r.URL.Path, http.StatusInternalServerError)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-
-			credentialsDecryptedBytes, decryptErr := rsa.DecryptOAEP(shaHash, rand.Reader, privateKey,
-				base64EncryptedStringDecoded, nil)
-			if decryptErr != nil {
-				log.Println("ERROR: loadstate: unable to decrypt credentials:", decryptErr)
-				pdet := base.NewProblemDetails("about: blank",
-					"Internal Server Error",
-					"Failed to decrypt credentials",
-					r.URL.Path, http.StatusInternalServerError)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-
-			// Get the credentials back into their struct form.
-			var credentials compcredentials.CompCredentials
-			unmarshalErr := json.Unmarshal(credentialsDecryptedBytes, &credentials)
-			if unmarshalErr != nil {
-				log.Println("ERROR: loadstate: unable to unmarshal credentials:", unmarshalErr)
-				pdet := base.NewProblemDetails("about: blank",
-					"Internal Server Error",
-					"Failed to unmarshal credentials",
-					r.URL.Path, http.StatusInternalServerError)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-
-			// Now finally we can put the credentials back into Vault.
-			compCredErr := compCredStore.StoreCompCred(credentials)
-			if compCredErr != nil {
-				log.Println("ERROR: loadstate: unable to store credentials:", compCredErr)
-				pdet := base.NewProblemDetails("about: blank",
-					"Internal Server Error",
-					"Failed to store credentials",
-					r.URL.Path, http.StatusInternalServerError)
-				base.SendProblemDetails(w, pdet, 0)
-				return
-			}
-		}
-
 		hardware = append(hardware, obj)
 	}
 

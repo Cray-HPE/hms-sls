@@ -58,12 +58,6 @@ LABEL maintainer="Hewlett Packard Enterprise"
 STOPSIGNAL SIGTERM
 EXPOSE 8376
 
-# Setup environment variables.
-ENV VAULT_ENABLED="true"
-ENV VAULT_ADDR="http://cray-vault.vault:8200"
-ENV VAULT_SKIP_VERIFY="true"
-ENV VAULT_KEYPATH="secret/hms-creds"
-
 # Default to latest schema version, this is overridden in the versioned chart.
 ENV SCHEMA_VERSION latest
 
