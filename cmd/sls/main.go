@@ -34,7 +34,7 @@ import (
 
 	"github.com/namsral/flag"
 
-	"github.com/Cray-HPE/hms-sls/internal/database"
+	"github.com/Cray-HPE/hms-sls/v2/internal/database"
 	"github.com/gorilla/mux"
 )
 

@@ -40,7 +40,7 @@ import (
 	"github.com/namsral/flag"
 
 	hms_s3 "github.com/Cray-HPE/hms-s3"
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/go-retryablehttp"

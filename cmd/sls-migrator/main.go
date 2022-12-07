@@ -35,7 +35,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	base "github.com/Cray-HPE/hms-base/v2"
-	sls_client "github.com/Cray-HPE/hms-sls/pkg/sls-client"
+	sls_client "github.com/Cray-HPE/hms-sls/v2/pkg/sls-client"
 )
 
 var (

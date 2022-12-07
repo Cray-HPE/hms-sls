@@ -27,9 +27,9 @@ import (
 	"path"
 	"strings"
 
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 
-	"github.com/Cray-HPE/hms-sls/internal/database"
+	"github.com/Cray-HPE/hms-sls/v2/internal/database"
 	"github.com/Cray-HPE/hms-xname/xnametypes"
 )
 
@@ -58,11 +58,12 @@ GenericHardware objects.  Callers should use reflect.GetType if they
 wish to have this object as a more specific type, then cast as:
 reflect.ValueOf(GenericHardwareObject).Interface().(Type)
 Parameters:
- * xname (string): The xname to look up
+  - xname (string): The xname to look up
+
 Returns:
- * *GenericHardware: The object corresponding to that xname or nil if the
-   xname was not found.
- * *error: Any error that occurred during the lookup
+  - *GenericHardware: The object corresponding to that xname or nil if the
+    xname was not found.
+  - *error: Any error that occurred during the lookup
 */
 func GetXname(xname string) (*sls_common.GenericHardware, error) {
 	// check if xname exists

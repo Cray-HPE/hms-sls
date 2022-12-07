@@ -31,7 +31,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 
 	//"os"
 	"reflect"

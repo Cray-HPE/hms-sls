@@ -27,15 +27,13 @@ import (
 	"errors"
 	"testing"
 
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 )
 
-//
 // SLSClient Mock
-//
 type mockSLSClient struct {
 	mock.Mock
 }
@@ -58,9 +56,7 @@ func (m *mockSLSClient) PutHardware(ctx context.Context, hardware sls_common.Gen
 	return args.Error(0)
 }
 
-//
 // Migrator Test Suite data
-//
 var saneHardwareList = []sls_common.GenericHardware{
 	// Chassis
 	sls_common.NewGenericHardware("x1000c0", sls_common.ClassMountain, nil),
@@ -118,9 +114,7 @@ var malformedRouterBMC = sls_common.GenericHardware{
 	},
 }
 
-//
 // Migrator Test Suite
-//
 type MigratorTestSuite struct {
 	suite.Suite
 

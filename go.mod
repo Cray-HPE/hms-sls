@@ -1,4 +1,4 @@
-module github.com/Cray-HPE/hms-sls
+module github.com/Cray-HPE/hms-sls/v2
 
 go 1.16
 

@@ -26,8 +26,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Cray-HPE/hms-sls/internal/database"
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/Cray-HPE/hms-sls/v2/internal/database"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 	"github.com/Cray-HPE/hms-xname/xnametypes"
 )
 

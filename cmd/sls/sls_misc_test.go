@@ -36,11 +36,11 @@ import (
 	"testing"
 	"time"
 
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 
-	"github.com/Cray-HPE/hms-sls/internal/database"
+	"github.com/Cray-HPE/hms-sls/v2/internal/database"
 
-	"github.com/Cray-HPE/hms-sls/internal/datastore"
+	"github.com/Cray-HPE/hms-sls/v2/internal/datastore"
 	"github.com/Cray-HPE/hms-xname/xnametypes"
 	"github.com/gorilla/mux"
 )

@@ -34,10 +34,10 @@ FROM build-base AS base
 RUN go env -w GO111MODULE=auto
 
 # Copy all the necessary files to the image.
-COPY cmd $GOPATH/src/github.com/Cray-HPE/hms-sls/cmd
-COPY internal $GOPATH/src/github.com/Cray-HPE/hms-sls/internal
-COPY vendor $GOPATH/src/github.com/Cray-HPE/hms-sls/vendor
-COPY pkg $GOPATH/src/github.com/Cray-HPE/hms-sls/pkg
+COPY cmd $GOPATH/src/github.com/Cray-HPE/hms-sls/v2/cmd
+COPY internal $GOPATH/src/github.com/Cray-HPE/hms-sls/v2/internal
+COPY vendor $GOPATH/src/github.com/Cray-HPE/hms-sls/v2/vendor
+COPY pkg $GOPATH/src/github.com/Cray-HPE/hms-sls/v2/pkg
 
 ### Build Stage ###
 
@@ -45,11 +45,11 @@ FROM base AS builder
 
 # Now build
 RUN set -ex \
-    && go build -v -i -o sls github.com/Cray-HPE/hms-sls/cmd/sls \
-    && go build -v -i -o sls-init github.com/Cray-HPE/hms-sls/cmd/sls-init \
-    && go build -v -i -o sls-loader github.com/Cray-HPE/hms-sls/cmd/sls-loader \
-    && go build -v -i -o sls-migrator github.com/Cray-HPE/hms-sls/cmd/sls-migrator \
-    && go build -v -i -o sls-s3-downloader github.com/Cray-HPE/hms-sls/cmd/sls-s3-downloader
+    && go build -v -i -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
+    && go build -v -i -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
+    && go build -v -i -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
+    && go build -v -i -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
+    && go build -v -i -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader
 
 ### Final Stage ###
 
