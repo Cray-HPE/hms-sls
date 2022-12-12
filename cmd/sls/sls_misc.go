@@ -311,7 +311,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 	// Check for the deprecated and ignored private_key form file
 	_, _, privateKeyErr := r.FormFile("private_key")
 	if privateKeyErr != http.ErrMissingFile || privateKeyErr == nil {
-		log.Println("INFO: loadstate: Ignoring the private_key option, which is no longer supported.")
+		log.Println("WARNING: loadstate: Ignoring the private_key option, which is no longer supported.")
 	}
 
 	// Now get the config file to read back in.
@@ -417,7 +417,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if containsVaultData {
-		log.Println("INFO: loadstate: Ignoring VaultData. Loading the vault data is no longer supported.")
+		log.Println("WARNING: loadstate: Ignoring VaultData. Loading the vault data is no longer supported.")
 	}
 
 	// Validate networks
