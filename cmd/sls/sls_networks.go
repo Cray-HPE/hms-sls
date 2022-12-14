@@ -30,9 +30,9 @@ import (
 	"strings"
 
 	base "github.com/Cray-HPE/hms-base/v2"
-	"github.com/Cray-HPE/hms-sls/internal/database"
-	"github.com/Cray-HPE/hms-sls/internal/datastore"
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/Cray-HPE/hms-sls/v2/internal/database"
+	"github.com/Cray-HPE/hms-sls/v2/internal/datastore"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 	"github.com/gorilla/mux"
 )
 

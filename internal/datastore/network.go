@@ -28,8 +28,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/Cray-HPE/hms-sls/internal/database"
-	sls_common "github.com/Cray-HPE/hms-sls/pkg/sls-common"
+	"github.com/Cray-HPE/hms-sls/v2/internal/database"
+	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 )
 
 var InvalidNetworkType = errors.New("invalid network type")

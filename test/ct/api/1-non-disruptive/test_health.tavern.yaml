@@ -51,7 +51,7 @@ stages:
                 type: str
                 required: True
                 enum:
-                  - "Enabled and initialized"
+                  - "Not checked"
               DBConnection:
                 type: str
                 required: True

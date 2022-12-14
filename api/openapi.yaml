@@ -89,26 +89,14 @@ info:
     
     ### Backup and Restore the SLS Database for Reinstallation
     
-    #### POST /dumpstate
+    #### GET /dumpstate
     
-    Perform a dump of the current state of the SLS data along with credentials. This should
-    be done before reinstalling the system. The database dump is a JSON blob in an SLS-specific format.
-    When doing POST /dumpstate, it is required that an RSA public key be provided to encrypt
-    the credentials that are pulled from the SLS database. The recommended tool for generating
-    a keypair is OpenSSL: 
-    
-    
-    openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+    Perform a dump of the current state of the SLS data. This should be done before reinstalling
+    the system. The database dump is a JSON blob in an SLS-specific format.
     
     #### POST /loadstate
     
-    Reimport the dump from /dumpstate and restore the SLS database after reinstall. When doing
-    POST /loadstate, it is required that an RSA private key be provided to encrypt the credentials
-    pulled from the SLS database. It must be the one that was generated with the public key
-    used to dump state. The recommended tool for generating a keypair is OpenSSL:
-    
-    
-    openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+    Reimport the dump from /dumpstate and restore the SLS database after reinstall.
         
     ### Expand System
     
@@ -184,7 +172,7 @@ paths:
                     description: Status of the connection with the database.
                     type: string
                 example:
-                  Vault: 'Enabled and initialized'
+                  Vault: 'Not checked'
                   DBConnection: 'Ready'
                 required:
                   - Vault
@@ -629,32 +617,6 @@ paths:
                 $ref: '#/components/schemas/slsState'
         500:
           description: "An error occurred in state dumping.  See body for details"
-    post:
-      tags: ["dumpstate"]
-      summary: "Retrieve a dump of current service state with credentials"
-      description: >-
-        "Get a dump of current service state. The format of this is implementation-specific.
-        When doing POST /dumpstate, it is required that an RSA public key be provided to encrypt
-        the credentials that are pulled from the SLS database.
-        The recommended tool for generating a keypair is OpenSSL:
-        `openssl rsa -in private.pem -outform PEM -pubout -out public.pem`"
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                public_key:
-                  type: string
-      responses:
-        200:
-          description: "State dumped successfully"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/slsState'
-        500:
-          description: "An error occurred in state dumping.  See body for details"
   /loadstate:
     post:
       tags:
@@ -663,11 +625,7 @@ paths:
       summary: "Load services state and overwrite current service state"
       description: >-
         "Load services state and overwrite current service state. The format of
-        the upload is implementation specific. When doing POST /loadstate, it is required
-        that an RSA private key be provided to encrypt the credentials pulled from the SLS database.
-        It must be the one that was generated with the public key used to dump state.
-        The recommended tool for generating a keypair is OpenSSL:
-        `openssl rsa -in private.pem -outform PEM -pubout -out public.pem`"
+        the upload is implementation specific."
       responses:
         201:
           description: "State loaded successfully"
@@ -680,8 +638,6 @@ paths:
             schema:
               type: object
               properties:
-                private_key:
-                  type: string
                 sls_dump:
                   $ref: '#/components/schemas/slsState'
 

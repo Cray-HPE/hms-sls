@@ -27,7 +27,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Cray-HPE/hms-sls/internal/database"
+	"github.com/Cray-HPE/hms-sls/v2/internal/database"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
