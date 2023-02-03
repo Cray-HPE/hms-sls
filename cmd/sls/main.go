@@ -24,6 +24,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -31,11 +32,14 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/namsral/flag"
 
 	"github.com/Cray-HPE/hms-sls/v2/internal/database"
 	"github.com/gorilla/mux"
+	cache "github.com/victorspringer/http-cache"
+	"github.com/victorspringer/http-cache/adapter/memory"
 )
 
 type Route struct {
@@ -234,10 +238,32 @@ func main() {
 	routes := generateRoutes()
 	router := newRouter(routes)
 
+	// Setup Caching
+	memcached, err := memory.NewAdapter(
+		memory.AdapterWithAlgorithm(memory.LRU),
+		memory.AdapterWithCapacity(1000),
+	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cacheClient, err := cache.NewClient(
+		cache.ClientWithAdapter(memcached),
+		cache.ClientWithTTL(15*time.Second),
+		cache.ClientWithRefreshKey("opn"),
+	)
+
 	srv := &http.Server{
 		Addr:    httpAddr,
 		Handler: router,
 	}
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	router.Use(cacheClient.Middleware)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -260,7 +286,7 @@ func main() {
 	log.Printf("DEBUG: Done parsing command line options")
 
 	log.Printf("DEBUG: Connecting to database...")
-	err := database.NewDatabase()
+	err = database.NewDatabase()
 	if err != nil {
 		// The NewDatabase method will try forever to connect, if we get to this point it really is time to panic.
 		panic(err)

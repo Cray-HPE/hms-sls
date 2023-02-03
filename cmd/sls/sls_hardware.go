@@ -147,6 +147,8 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 //  /hardware GET API
 
 func doHardwareGet(w http.ResponseWriter, r *http.Request) {
+	log.Println("INFO Hardware Get")
+
 	hwList, err := datastore.GetAllXnameObjects()
 	if err != nil {
 		log.Println("ERROR getting all /hardware objects from DB:", err)

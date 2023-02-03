@@ -23,7 +23,7 @@
 # Dockerfile for building HMS SLS.
 
 # Build base just has the packages installed we need.
-FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.19-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
@@ -49,7 +49,8 @@ RUN set -ex \
     && go build -v -i -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
     && go build -v -i -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
     && go build -v -i -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
-    && go build -v -i -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader
+    && go build -v -i -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
+    && go build -v -i -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark
 
 ### Final Stage ###
 
