@@ -26,6 +26,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
@@ -279,6 +280,8 @@ func getChildrenForXname(xname string) (children []string, err error) {
 }
 
 func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) {
+	log.Println("GetAllGenericHardware: Start")
+
 	// First, get the base object and all its associated data
 	baseQ := "SELECT \n" +
 		"    c1.xname,  \n" +
@@ -302,7 +305,11 @@ func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) 
 		return
 	}
 
+	log.Println("GetAllGenericHardware: Query Done")
+
 	for baseRows.Next() {
+		log.Println("GetAllGenericHardware: Process hardware")
+
 		var thisGenericHardware sls_common.GenericHardware
 		var lastUpdated time.Time
 
@@ -333,6 +340,7 @@ func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) 
 		hardware = append(hardware, thisGenericHardware)
 	}
 
+	log.Println("GetAllGenericHardware: End")
 	return
 }
 

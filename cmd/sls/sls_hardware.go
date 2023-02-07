@@ -147,7 +147,7 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 //  /hardware GET API
 
 func doHardwareGet(w http.ResponseWriter, r *http.Request) {
-	log.Println("INFO Hardware Get")
+	log.Println("INFO: doHardwareGet start")
 
 	hwList, err := datastore.GetAllXnameObjects()
 	if err != nil {
@@ -155,6 +155,8 @@ func doHardwareGet(w http.ResponseWriter, r *http.Request) {
 		sendJsonRsp(w, http.StatusInternalServerError, "failed hardware DB query")
 		return
 	}
+
+	log.Println("INFO: doHardwareGet got data from database")
 	ba, baerr := json.Marshal(hwList)
 	if baerr != nil {
 		log.Println("ERROR: JSON marshal of /hardware failed:", baerr)
@@ -165,6 +167,8 @@ func doHardwareGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(ba)
+
+	log.Println("INFO: doHardwareGet done")
 }
 
 //  /hardware/{xname} GET API
