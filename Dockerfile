@@ -83,6 +83,7 @@ COPY --from=builder /go/sls-init /usr/local/bin
 COPY --from=builder /go/sls-loader /usr/local/bin
 COPY --from=builder /go/sls-migrator /usr/local/bin
 COPY --from=builder /go/sls-s3-downloader /usr/local/bin
+COPY --from=builder /go/sls-benchmark /usr/local/bin
 
 # nobody 65534:65534
 USER 65534:65534
