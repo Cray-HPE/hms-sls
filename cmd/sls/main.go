@@ -24,7 +24,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -66,6 +65,9 @@ const (
 )
 
 var httpAddr string
+var cacheLayerEnable bool
+var cacheTTLSeconds int
+var cacheCapacity int
 var debugLevel int
 
 var vaultKeypath string
@@ -230,6 +232,12 @@ func main() {
 
 	flag.StringVar(&httpAddr, "http_listen_addr", ":8376",
 		"The address (in [address]:port) on which to expose SLS's HTTP interface")
+	flag.BoolVar(&cacheLayerEnable, "cache_layer_enable", false,
+		"Enable the HTTP caching middleware")
+	flag.IntVar(&cacheTTLSeconds, "cache_ttl_seconds", 15,
+		"Set the caches Time To Live (TTL) in seconds")
+	flag.IntVar(&cacheCapacity, "cache_capacity", 1000, // TODO tune
+		"Set the size of the cache")
 	flag.IntVar(&debugLevel, "debug", 0, "Debug level")
 	flag.Parse()
 	envVars()
@@ -238,32 +246,36 @@ func main() {
 	routes := generateRoutes()
 	router := newRouter(routes)
 
-	// Setup Caching
-	memcached, err := memory.NewAdapter(
-		memory.AdapterWithAlgorithm(memory.LRU),
-		memory.AdapterWithCapacity(1000),
-	)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	cacheClient, err := cache.NewClient(
-		cache.ClientWithAdapter(memcached),
-		cache.ClientWithTTL(15*time.Second),
-		cache.ClientWithRefreshKey("opn"),
-	)
-
 	srv := &http.Server{
 		Addr:    httpAddr,
 		Handler: router,
 	}
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 
-	router.Use(cacheClient.Middleware)
+	if cacheLayerEnable {
+		log.Printf("INFO: Enabling cache layer with capacity %d and TTL of %d seconds\n", cacheCapacity, cacheTTLSeconds)
+
+		// Setup Caching
+		memcached, err := memory.NewAdapter(
+			memory.AdapterWithAlgorithm(memory.LRU),
+			memory.AdapterWithCapacity(cacheCapacity),
+		)
+		if err != nil {
+			log.Fatalf("ERROR: Failed to setup memory cache adapter. Error: %s\n", err.Error())
+		}
+
+		cacheClient, err := cache.NewClient(
+			cache.ClientWithAdapter(memcached),
+			cache.ClientWithTTL(time.Second*time.Duration(cacheTTLSeconds)),
+			// cache.ClientWithRefreshKey("opn"), // TODO
+		)
+		if err != nil {
+			log.Fatalf("ERROR: Failed to setup cache client. Error: %s\n", err.Error())
+		}
+
+		router.Use(cacheClient.Middleware)
+	} else {
+		log.Println("INFO: Caching layer is disabled")
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -286,7 +298,7 @@ func main() {
 	log.Printf("DEBUG: Done parsing command line options")
 
 	log.Printf("DEBUG: Connecting to database...")
-	err = database.NewDatabase()
+	err := database.NewDatabase()
 	if err != nil {
 		// The NewDatabase method will try forever to connect, if we get to this point it really is time to panic.
 		panic(err)
