@@ -251,35 +251,6 @@ func UpdateGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 	return
 }
 
-func getChildrenForXname(ctx context.Context, xname string) (children []string, err error) {
-	// Now we find all the children for this object and add them to the base object.
-	parentQ := "SELECT \n" +
-		"    xname \n" +
-		"FROM \n" +
-		"    components \n" +
-		"WHERE \n" +
-		"    parent = $1 "
-	childrenRows, parentErr := DB.QueryContext(ctx, parentQ, xname)
-	if parentErr != nil {
-		err = errors.Errorf("unable to query children: %s", parentErr)
-		return
-	}
-
-	for childrenRows.Next() {
-		var thisChildXname string
-
-		childErr := childrenRows.Scan(&thisChildXname)
-		if childErr != nil {
-			err = errors.Errorf("unable to scan child row: %s", childErr)
-			return
-		}
-
-		children = append(children, thisChildXname)
-	}
-
-	return
-}
-
 func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHardware, err error) {
 	log.Println("GetAllGenericHardware: Start")
 
@@ -410,17 +381,19 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 	}
 
 	q := "SELECT \n" +
-		"    xname, \n" +
-		"    parent, \n" +
-		"    comp_type, \n" +
-		"    comp_class, \n" +
-		"    timestamp, \n" +
-		"    extra_properties \n" +
+		"    c1.xname, \n" +
+		"    c1.parent, \n" +
+		"    c1.comp_type, \n" +
+		"    c1.comp_class, \n" +
+		"    version_history.timestamp, \n" +
+		"    c1.extra_properties, \n" +
+		"    ARRAY_REMOVE(ARRAY_AGG(distinct c2.xname), NULL) as children \n" +
 		"FROM \n" +
-		"    components  \n" +
-		"INNER JOIN \n" +
-		"    version_history \n" +
-		"ON components.last_updated_version = version_history.version \n" +
+		"    components c1 \n" +
+		"INNER JOIN version_history \n" +
+		"    ON c1.last_updated_version = version_history.version \n" +
+		"LEFT JOIN components c2 \n" +
+		"    ON c1.xname = c2.parent \n" +
 		"WHERE \n     "
 
 	// Build the conditions for the regular columns.
@@ -431,7 +404,7 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 			q = q + "  AND"
 		}
 
-		q = q + fmt.Sprintf(" %s = $%d \n", key, index)
+		q = q + fmt.Sprintf(" c1.%s = $%d \n", key, index)
 		parameters = append(parameters, value)
 		index++
 	}
@@ -452,7 +425,7 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 		//   jsonb ?| text[] returns boolean - returns true if any of the strings in text[] exist as top level keys or array elements
 		valueString, ok := value.(string)
 		if ok {
-			q = q + fmt.Sprintf(" extra_properties ->> $%d = $%d \n", index, index+1)
+			q = q + fmt.Sprintf(" c1.extra_properties ->> $%d = $%d \n", index, index+1)
 			parameters = append(parameters, key, valueString)
 			index += 2
 		} else if valueArray, ok := value.([]string); ok {
@@ -461,11 +434,13 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 			var paramArray string
 			var values []interface{}
 			index, values, paramArray = ToParameterArray(index, valueArray)
-			q = q + fmt.Sprintf(" extra_properties -> $%d ?| array[%s] \n", keyIndex, paramArray)
+			q = q + fmt.Sprintf(" c1.extra_properties -> $%d ?| array[%s] \n", keyIndex, paramArray)
 			parameters = append(parameters, key)
 			parameters = append(parameters, values...)
 		}
 	}
+
+	q = q + "GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties \n"
 
 	rows, queryErr := DB.QueryContext(ctx, q, parameters...)
 	if queryErr != nil {
@@ -483,7 +458,8 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 			&newGenericHardware.Type,
 			&newGenericHardware.Class,
 			&lastUpdated,
-			&extraPropertiesBytes)
+			&extraPropertiesBytes,
+			pq.Array(&newGenericHardware.Children))
 		if scanErr != nil {
 			err = errors.Errorf("unable to scan row: %s", scanErr)
 			return
@@ -498,15 +474,6 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 			err = errors.Errorf("unable to unmarshal extended properties: %s", unmarshalErr)
 			return
 		}
-
-		var children []string
-		// TODO this needs to match gethardware, as this is what gets SLS blocked if a lot of hardware is searched at one time.
-		children, err = getChildrenForXname(ctx, newGenericHardware.Xname)
-		if err != nil {
-			return
-		}
-
-		newGenericHardware.Children = children
 
 		hardware = append(hardware, newGenericHardware)
 	}
