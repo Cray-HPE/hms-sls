@@ -24,6 +24,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -1089,6 +1090,8 @@ func logTestContext(t *testing.T, description string, data testData) {
 }
 
 func Test_doHardwarePost(t *testing.T) {
+	ctx := context.TODO()
+
 	var jdata, jexp sls_common.GenericHardware
 	var tpl *testData
 	var targ, child string
@@ -1101,7 +1104,7 @@ func Test_doHardwarePost(t *testing.T) {
 	dbInit()
 
 	// Clear the database.
-	database.DeleteAllGenericHardware()
+	database.DeleteAllGenericHardware(ctx)
 
 	for ii, pl := range payloads {
 		t.Logf("POST test %d...\n", ii)

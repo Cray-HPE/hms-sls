@@ -40,7 +40,7 @@ import (
 
 func doNetworksGet(w http.ResponseWriter, r *http.Request) {
 	// Get the networks from the database
-	networks, err := datastore.GetAllNetworks()
+	networks, err := datastore.GetAllNetworks(r.Context())
 	if err != nil {
 		log.Println("ERROR: Can't get networks from DB:", err)
 		pdet := base.NewProblemDetails("about: blank",
@@ -95,7 +95,7 @@ func doNetworksPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Now add it to the database.
-	validationErr, err := datastore.InsertNetwork(network)
+	validationErr, err := datastore.InsertNetwork(r.Context(), network)
 	if validationErr != nil {
 		log.Println("ERROR: POST network had validation error: ", validationErr)
 		pdet := base.NewProblemDetails("about: blank",
@@ -145,7 +145,7 @@ func doNetworkObjGet(w http.ResponseWriter, r *http.Request) {
 	networkName := mux.Vars(r)["network"]
 
 	// Get the networks from the database
-	network, err := datastore.GetNetwork(networkName)
+	network, err := datastore.GetNetwork(r.Context(), networkName)
 	if err == database.NoSuch {
 		log.Println("ERROR: ", err)
 		pdet := base.NewProblemDetails("about: blank",
@@ -215,7 +215,7 @@ func doNetworkObjPut(w http.ResponseWriter, r *http.Request) {
 	network.Name = networkName
 
 	// Now do the update.
-	validationErr, err := datastore.SetNetwork(network)
+	validationErr, err := datastore.SetNetwork(r.Context(), network)
 
 	if validationErr != nil {
 		log.Printf("ERROR: Validation error: %s\n", validationErr)
@@ -267,7 +267,7 @@ func doNetworkObjDelete(w http.ResponseWriter, r *http.Request) {
 	networkName := mux.Vars(r)["network"]
 
 	// Delete the network from the DB
-	err := datastore.DeleteNetwork(networkName)
+	err := datastore.DeleteNetwork(r.Context(), networkName)
 	if err == database.NoSuch {
 		log.Println("ERROR: ", err)
 		pdet := base.NewProblemDetails("about: blank",
@@ -332,7 +332,7 @@ func doNetworksSearch(w http.ResponseWriter, r *http.Request) {
 
 	network.ExtraPropertiesRaw = properties
 
-	networks, err := datastore.SearchNetworks(network)
+	networks, err := datastore.SearchNetworks(r.Context(), network)
 	if err == database.NoSuch {
 		log.Println("ERROR: ", err)
 		pdet := base.NewProblemDetails("about: blank",

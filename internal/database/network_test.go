@@ -23,6 +23,7 @@
 package database
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -42,7 +43,9 @@ func (suite *NetworkTestSuite) SetupSuite() {
 }
 
 func (suite *NetworkTestSuite) TestCUDNetwork_HappyPath() {
-	previousVersion, versionErr := GetCurrentVersion()
+	ctx := context.TODO()
+
+	previousVersion, versionErr := GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 
 	network := sls_common.Network{
@@ -52,13 +55,13 @@ func (suite *NetworkTestSuite) TestCUDNetwork_HappyPath() {
 		Type:     "ethernet",
 	}
 
-	err := InsertNetwork(network)
+	err := InsertNetwork(ctx, network)
 	suite.NoError(err)
 
-	err = InsertNetwork(network)
+	err = InsertNetwork(ctx, network)
 	suite.EqualError(err, AlreadySuch.Error())
 
-	newVersion, versionErr := GetCurrentVersion()
+	newVersion, versionErr := GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 	suite.Greater(newVersion, previousVersion)
 	previousVersion = newVersion
@@ -68,24 +71,26 @@ func (suite *NetworkTestSuite) TestCUDNetwork_HappyPath() {
 	network.IPRanges = append(network.IPRanges, "176.16.0.0/16")
 	network.Type = "mixed"
 
-	err = UpdateNetwork(network)
+	err = UpdateNetwork(ctx, network)
 	suite.NoError(err)
 
-	newVersion, versionErr = GetCurrentVersion()
+	newVersion, versionErr = GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 	suite.Greater(newVersion, previousVersion)
 	previousVersion = newVersion
 
-	err = DeleteNetwork(network.Name)
+	err = DeleteNetwork(ctx, network.Name)
 	suite.NoError(err)
 
-	newVersion, versionErr = GetCurrentVersion()
+	newVersion, versionErr = GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 	suite.Greater(newVersion, previousVersion)
 	previousVersion = newVersion
 }
 
 func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
+	ctx := context.TODO()
+
 	// Put in a network
 	network := sls_common.Network{
 		Name:     "nmn",
@@ -98,18 +103,18 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 		},
 	}
 
-	err := InsertNetwork(network)
+	err := InsertNetwork(ctx, network)
 	suite.NoError(err)
 
 	// Get the data back out
-	returnedNetwork, err := GetNetworkForName("nmn")
+	returnedNetwork, err := GetNetworkForName(ctx, "nmn")
 	suite.NoError(err)
 
 	_, err = json.MarshalIndent(returnedNetwork, "\t", "\t")
 	suite.NoError(err)
 
 	// Search for a network that contains an IP address
-	returnedNetworks, err := GetNetworksContainingIP("192.168.1.5")
+	returnedNetworks, err := GetNetworksContainingIP(ctx, "192.168.1.5")
 	suite.NoError(err)
 	suite.GreaterOrEqual(len(returnedNetworks), 1)
 
@@ -117,21 +122,24 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 	suite.NoError(err)
 
 	// Search for a network that doesn't exist
-	returnedNetworks, err = GetNetworksContainingIP("1.1.1.1")
+	returnedNetworks, err = GetNetworksContainingIP(ctx, "1.1.1.1")
 	suite.EqualError(err, NoSuch.Error())
 	suite.Equal(len(returnedNetworks), 0)
 
 	// Do a free form search
-	returnedNetworks, err = SearchNetworks(map[string]string{
-		"name":      network.Name,
-		"full_name": network.FullName,
-		"ip_ranges": "192.168.1.2",
-	}, map[string]interface{}{})
+	returnedNetworks, err = SearchNetworks(
+		ctx,
+		map[string]string{
+			"name":      network.Name,
+			"full_name": network.FullName,
+			"ip_ranges": "192.168.1.2",
+		}, map[string]interface{}{})
 	suite.NoError(err)
 	suite.GreaterOrEqual(len(returnedNetworks), 1)
 
 	// Do a free form search using the networks extra properties
 	returnedNetworks, err = SearchNetworks(
+		ctx,
 		map[string]string{},
 		map[string]interface{}{
 			"MTU": "9000",
@@ -140,15 +148,18 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 	suite.Len(returnedNetworks, 1)
 
 	// Make sure we don't get anything for this.
-	returnedNetworks, err = SearchNetworks(map[string]string{
-		"name":      network.Name,
-		"full_name": "not a real name",
-	}, map[string]interface{}{})
+	returnedNetworks, err = SearchNetworks(
+		ctx,
+		map[string]string{
+			"name":      network.Name,
+			"full_name": "not a real name",
+		}, map[string]interface{}{})
 	suite.EqualError(err, NoSuch.Error())
 	suite.Equal(len(returnedNetworks), 0)
 
 	// Make sure we don't get anything for this search using the extra properties:
 	returnedNetworks, err = SearchNetworks(
+		ctx,
 		map[string]string{},
 		map[string]interface{}{
 			"MTU": "9001",

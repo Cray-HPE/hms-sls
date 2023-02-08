@@ -23,6 +23,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/pkg/errors"
@@ -51,25 +52,25 @@ func IncrementVersion(trans *sql.Tx, updatedEntity string) (id int64, err error)
 	return version, err
 }
 
-func GetCurrentVersion() (version int, err error) {
+func GetCurrentVersion(ctx context.Context) (version int, err error) {
 	q := "SELECT " +
 		"    max(version) " +
 		"FROM " +
 		"    version_history "
 
-	row := DB.QueryRow(q)
+	row := DB.QueryRowContext(ctx, q)
 	err = row.Scan(&version)
 
 	return
 }
 
-func GetLastModified() (lastModified string, err error) {
+func GetLastModified(ctx context.Context) (lastModified string, err error) {
 	q := "SELECT " +
 		"    max(timestamp) " +
 		"FROM " +
 		"    version_history "
 
-	row := DB.QueryRow(q)
+	row := DB.QueryRowContext(ctx, q)
 	err = row.Scan(&lastModified)
 
 	return

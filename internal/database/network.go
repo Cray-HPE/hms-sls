@@ -23,6 +23,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -33,7 +34,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func InsertNetwork(network sls_common.Network) (err error) {
+func InsertNetwork(ctx context.Context, network sls_common.Network) (err error) {
 	q := "INSERT INTO \n" +
 		"    network (name, \n" +
 		"             full_name, \n" +
@@ -55,7 +56,7 @@ func InsertNetwork(network sls_common.Network) (err error) {
 		return
 	}
 
-	trans, beginErr := DB.Begin()
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return
@@ -104,7 +105,7 @@ func InsertNetwork(network sls_common.Network) (err error) {
 	return
 }
 
-func DeleteNetwork(networkName string) (err error) {
+func DeleteNetwork(ctx context.Context, networkName string) (err error) {
 	q := "DELETE \n" +
 		"FROM \n" +
 		"    network \n" +
@@ -153,11 +154,11 @@ func DeleteNetwork(networkName string) (err error) {
 	return
 }
 
-func DeleteAllNetworks() (err error) {
+func DeleteAllNetworks(ctx context.Context) (err error) {
 	q := "TRUNCATE " +
 		"    network "
 
-	trans, beginErr := DB.Begin()
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return
@@ -185,7 +186,7 @@ func DeleteAllNetworks() (err error) {
 	return
 }
 
-func UpdateNetwork(network sls_common.Network) (err error) {
+func UpdateNetwork(ctx context.Context, network sls_common.Network) (err error) {
 	q := "UPDATE network \n" +
 		"SET \n" +
 		"    full_name        = $2, \n" +
@@ -202,7 +203,7 @@ func UpdateNetwork(network sls_common.Network) (err error) {
 		return
 	}
 
-	trans, beginErr := DB.Begin()
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return
@@ -243,7 +244,7 @@ func UpdateNetwork(network sls_common.Network) (err error) {
 	return
 }
 
-func GetAllNetworks() (networks []sls_common.Network, err error) {
+func GetAllNetworks(ctx context.Context) (networks []sls_common.Network, err error) {
 	q := "SELECT \n" +
 		"    name, \n" +
 		"    full_name, \n" +
@@ -257,7 +258,7 @@ func GetAllNetworks() (networks []sls_common.Network, err error) {
 		"    version_history \n" +
 		"ON network.last_updated_version = version_history.version \n"
 
-	rows, rowsErr := DB.Query(q)
+	rows, rowsErr := DB.QueryContext(ctx, q)
 	if rowsErr != nil {
 		err = errors.Errorf("unable to query network: %s", rowsErr)
 		return
@@ -294,7 +295,7 @@ func GetAllNetworks() (networks []sls_common.Network, err error) {
 	return
 }
 
-func GetNetworkForName(name string) (network sls_common.Network, err error) {
+func GetNetworkForName(ctx context.Context, name string) (network sls_common.Network, err error) {
 	q := "SELECT \n" +
 		"    name, \n" +
 		"    full_name, \n" +
@@ -310,7 +311,7 @@ func GetNetworkForName(name string) (network sls_common.Network, err error) {
 		"WHERE \n" +
 		"    name = $1 "
 
-	row := DB.QueryRow(q, name)
+	row := DB.QueryRowContext(ctx, q, name)
 
 	var extraPropertiesBytes []byte
 	var lastUpdated time.Time
@@ -337,13 +338,15 @@ func GetNetworkForName(name string) (network sls_common.Network, err error) {
 	return
 }
 
-func GetNetworksContainingIP(addr string) (networks []sls_common.Network, err error) {
-	return SearchNetworks(map[string]string{
-		"ip_ranges": addr,
-	}, map[string]interface{}{})
+func GetNetworksContainingIP(ctx context.Context, addr string) (networks []sls_common.Network, err error) {
+	return SearchNetworks(ctx,
+		map[string]string{
+			"ip_ranges": addr,
+		}, map[string]interface{}{},
+	)
 }
 
-func SearchNetworks(conditions map[string]string, properties map[string]interface{}) (networks []sls_common.Network, err error) {
+func SearchNetworks(ctx context.Context, conditions map[string]string, properties map[string]interface{}) (networks []sls_common.Network, err error) {
 	if len(conditions) == 0 && len(properties) == 0 {
 		err = errors.Errorf("no properties with which to search")
 		return
@@ -416,7 +419,7 @@ func SearchNetworks(conditions map[string]string, properties map[string]interfac
 		}
 	}
 
-	rows, rowsErr := DB.Query(q, parameters...)
+	rows, rowsErr := DB.QueryContext(ctx, q, parameters...)
 	if rowsErr != nil {
 		err = errors.Errorf("unable to query network: %s", rowsErr)
 		return
@@ -457,8 +460,8 @@ func SearchNetworks(conditions map[string]string, properties map[string]interfac
 	return
 }
 
-func ReplaceAllNetworks(networks []sls_common.Network) (err error) {
-	trans, beginErr := DB.Begin()
+func ReplaceAllNetworks(ctx context.Context, networks []sls_common.Network) (err error) {
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return

@@ -23,6 +23,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -35,7 +36,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func InsertGenericHardware(hardware sls_common.GenericHardware) (err error) {
+func InsertGenericHardware(ctx context.Context, hardware sls_common.GenericHardware) (err error) {
 	q := "INSERT INTO \n" +
 		"    components (xname, \n" +
 		"                parent, \n" +
@@ -57,7 +58,7 @@ func InsertGenericHardware(hardware sls_common.GenericHardware) (err error) {
 		return err
 	}
 
-	trans, beginErr := DB.Begin()
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return err
@@ -110,14 +111,14 @@ func InsertGenericHardware(hardware sls_common.GenericHardware) (err error) {
 	return
 }
 
-func DeleteGenericHardware(hardware sls_common.GenericHardware) (err error) {
+func DeleteGenericHardware(ctx context.Context, hardware sls_common.GenericHardware) (err error) {
 	q := "DELETE \n" +
 		"FROM \n" +
 		"    components \n" +
 		"WHERE \n" +
 		"    xname = $1 "
 
-	trans, beginErr := DB.Begin()
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return
@@ -159,11 +160,11 @@ func DeleteGenericHardware(hardware sls_common.GenericHardware) (err error) {
 	return
 }
 
-func DeleteAllGenericHardware() (err error) {
+func DeleteAllGenericHardware(ctx context.Context) (err error) {
 	q := "TRUNCATE " +
 		"    components "
 
-	trans, beginErr := DB.Begin()
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return
@@ -191,7 +192,7 @@ func DeleteAllGenericHardware() (err error) {
 	return
 }
 
-func UpdateGenericHardware(hardware sls_common.GenericHardware) (err error) {
+func UpdateGenericHardware(ctx context.Context, hardware sls_common.GenericHardware) (err error) {
 	q := "UPDATE components \n" +
 		"SET \n" +
 		"    parent           = $2, \n" +
@@ -208,7 +209,7 @@ func UpdateGenericHardware(hardware sls_common.GenericHardware) (err error) {
 		return
 	}
 
-	trans, beginErr := DB.Begin()
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return
@@ -250,7 +251,7 @@ func UpdateGenericHardware(hardware sls_common.GenericHardware) (err error) {
 	return
 }
 
-func getChildrenForXname(xname string) (children []string, err error) {
+func getChildrenForXname(ctx context.Context, xname string) (children []string, err error) {
 	// Now we find all the children for this object and add them to the base object.
 	parentQ := "SELECT \n" +
 		"    xname \n" +
@@ -258,7 +259,7 @@ func getChildrenForXname(xname string) (children []string, err error) {
 		"    components \n" +
 		"WHERE \n" +
 		"    parent = $1 "
-	childrenRows, parentErr := DB.Query(parentQ, xname)
+	childrenRows, parentErr := DB.QueryContext(ctx, parentQ, xname)
 	if parentErr != nil {
 		err = errors.Errorf("unable to query children: %s", parentErr)
 		return
@@ -279,7 +280,7 @@ func getChildrenForXname(xname string) (children []string, err error) {
 	return
 }
 
-func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) {
+func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHardware, err error) {
 	log.Println("GetAllGenericHardware: Start")
 
 	// First, get the base object and all its associated data
@@ -299,7 +300,7 @@ func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) 
 		"    ON c1.xname = c2.parent \n" +
 		"    GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties"
 
-	baseRows, baseErr := DB.Query(baseQ)
+	baseRows, baseErr := DB.QueryContext(ctx, baseQ)
 	if baseErr != nil {
 		err = errors.Errorf("unable to query generic hardware: %s", baseErr)
 		return
@@ -344,7 +345,7 @@ func GetAllGenericHardware() (hardware []sls_common.GenericHardware, err error) 
 	return
 }
 
-func GetGenericHardwareFromXname(xname string) (hardware sls_common.GenericHardware, err error) {
+func GetGenericHardwareFromXname(ctx context.Context, xname string) (hardware sls_common.GenericHardware, err error) {
 	// First, get the base object and all its associated data
 	baseQ := "SELECT \n" +
 		"    c1.xname, \n" +
@@ -364,7 +365,7 @@ func GetGenericHardwareFromXname(xname string) (hardware sls_common.GenericHardw
 		"    c1.xname = $1 \n" +
 		"GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties"
 
-	baseRow := DB.QueryRow(baseQ, xname)
+	baseRow := DB.QueryRowContext(ctx, baseQ, xname)
 
 	var extraPropertiesBytes []byte
 	var lastUpdated time.Time
@@ -396,12 +397,12 @@ func GetGenericHardwareFromXname(xname string) (hardware sls_common.GenericHardw
 	return
 }
 
-func GetGenericHardwareForExtraProperties(properties map[string]interface{}) (hardware []sls_common.GenericHardware,
+func GetGenericHardwareForExtraProperties(ctx context.Context, properties map[string]interface{}) (hardware []sls_common.GenericHardware,
 	err error) {
-	return SearchGenericHardware(nil, properties)
+	return SearchGenericHardware(ctx, nil, properties)
 }
 
-func SearchGenericHardware(conditions map[string]string, properties map[string]interface{}) (
+func SearchGenericHardware(ctx context.Context, conditions map[string]string, properties map[string]interface{}) (
 	hardware []sls_common.GenericHardware, err error) {
 	if len(conditions) == 0 && len(properties) == 0 {
 		err = errors.Errorf("no conditions/properties with which to search")
@@ -466,7 +467,7 @@ func SearchGenericHardware(conditions map[string]string, properties map[string]i
 		}
 	}
 
-	rows, queryErr := DB.Query(q, parameters...)
+	rows, queryErr := DB.QueryContext(ctx, q, parameters...)
 	if queryErr != nil {
 		err = errors.Errorf("unable to query extra properties: %s", queryErr)
 		return
@@ -499,7 +500,8 @@ func SearchGenericHardware(conditions map[string]string, properties map[string]i
 		}
 
 		var children []string
-		children, err = getChildrenForXname(newGenericHardware.Xname)
+		// TODO this needs to match gethardware, as this is what gets SLS blocked if a lot of hardware is searched at one time.
+		children, err = getChildrenForXname(ctx, newGenericHardware.Xname)
 		if err != nil {
 			return
 		}
@@ -512,8 +514,8 @@ func SearchGenericHardware(conditions map[string]string, properties map[string]i
 	return
 }
 
-func ReplaceAllGenericHardware(hardware []sls_common.GenericHardware) (err error) {
-	trans, beginErr := DB.Begin()
+func ReplaceAllGenericHardware(ctx context.Context, hardware []sls_common.GenericHardware) (err error) {
+	trans, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
 		err = errors.Errorf("unable to begin transaction: %s", beginErr)
 		return

@@ -23,6 +23,7 @@
 package datastore
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"strings"
@@ -65,10 +66,10 @@ Returns:
     xname was not found.
   - *error: Any error that occurred during the lookup
 */
-func GetXname(xname string) (*sls_common.GenericHardware, error) {
+func GetXname(ctx context.Context, xname string) (*sls_common.GenericHardware, error) {
 	// check if xname exists
 	xname = xnametypes.NormalizeHMSCompID(xname)
-	res, err := database.GetGenericHardwareFromXname(xname)
+	res, err := database.GetGenericHardwareFromXname(ctx, xname)
 	if err == database.NoSuch {
 		return nil, nil
 	}
@@ -255,7 +256,7 @@ func ValidateFields(obj sls_common.GenericHardware) error {
 /*
 SetXname updates a specified xname with new or updated properties
 */
-func SetXname(xname string, obj sls_common.GenericHardware) (err error, created bool) {
+func SetXname(ctx context.Context, xname string, obj sls_common.GenericHardware) (err error, created bool) {
 	created = false
 	// Setup: make sure all data is clean
 	err = NormalizeFields(&obj)
@@ -269,14 +270,14 @@ func SetXname(xname string, obj sls_common.GenericHardware) (err error, created 
 	}
 
 	// check if xname exists
-	_, err = database.GetGenericHardwareFromXname(obj.Xname)
+	_, err = database.GetGenericHardwareFromXname(ctx, obj.Xname)
 	if err != nil && err != database.NoSuch {
 		return err, created
 	} else if err == database.NoSuch {
-		err = database.InsertGenericHardware(obj)
+		err = database.InsertGenericHardware(ctx, obj)
 		created = true
 	} else {
-		err = database.UpdateGenericHardware(obj)
+		err = database.UpdateGenericHardware(ctx, obj)
 	}
 
 	// TODO If this is a connector object, make sure to update the peer (old and new) as well.
@@ -288,23 +289,23 @@ func SetXname(xname string, obj sls_common.GenericHardware) (err error, created 
 DeleteXname removes hardware witht he appropriate name from the datastore.
 It handles updating the parent and any peers.
 */
-func DeleteXname(xname string) error {
+func DeleteXname(ctx context.Context, xname string) error {
 	// check if xname exists
-	_, err := database.GetGenericHardwareFromXname(xnametypes.NormalizeHMSCompID(xname))
+	_, err := database.GetGenericHardwareFromXname(ctx, xnametypes.NormalizeHMSCompID(xname))
 	if err != nil {
 		return err
 	}
 	gh := sls_common.GenericHardware{}
 	gh.Xname = xnametypes.NormalizeHMSCompID(xname)
-	return database.DeleteGenericHardware(gh)
+	return database.DeleteGenericHardware(ctx, gh)
 }
 
 /*
 GetAllXnames  gets a list of names of all stored xnames
 */
-func GetAllXnames() ([]string, error) {
+func GetAllXnames(ctx context.Context) ([]string, error) {
 	ret := make([]string, 0)
-	hw, err := database.GetAllGenericHardware()
+	hw, err := database.GetAllGenericHardware(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -314,15 +315,15 @@ func GetAllXnames() ([]string, error) {
 	return ret, nil
 }
 
-func GetAllHardware() ([]sls_common.GenericHardware, error) {
-	return database.GetAllGenericHardware()
+func GetAllHardware(ctx context.Context) ([]sls_common.GenericHardware, error) {
+	return database.GetAllGenericHardware(ctx)
 }
 
 /*
 GetAllXnameObjects get a list of all stored GenericHardware objects
 */
-func GetAllXnameObjects() ([]sls_common.GenericHardware, error) {
-	ret, err := database.GetAllGenericHardware()
+func GetAllXnameObjects(ctx context.Context) ([]sls_common.GenericHardware, error) {
+	ret, err := database.GetAllGenericHardware(ctx)
 	if err != nil {
 		return nil, err
 	}
