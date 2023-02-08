@@ -39,6 +39,8 @@ import (
 //  /networks GET API
 
 func doNetworksGet(w http.ResponseWriter, r *http.Request) {
+	log.Println("DEBUG: doNetworksGet")
+
 	// Get the networks from the database
 	networks, err := datastore.GetAllNetworks(r.Context())
 	if err != nil {

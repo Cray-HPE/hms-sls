@@ -148,7 +148,7 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 //  /hardware GET API
 
 func doHardwareGet(w http.ResponseWriter, r *http.Request) {
-	log.Println("INFO: doHardwareGet start")
+	log.Println("DEBUG: doHardwareGet")
 
 	hwList, err := datastore.GetAllXnameObjects(r.Context())
 	if err != nil {
@@ -157,7 +157,6 @@ func doHardwareGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("INFO: doHardwareGet got data from database")
 	ba, baerr := json.Marshal(hwList)
 	if baerr != nil {
 		log.Println("ERROR: JSON marshal of /hardware failed:", baerr)
@@ -168,8 +167,6 @@ func doHardwareGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(ba)
-
-	log.Println("INFO: doHardwareGet done")
 }
 
 //  /hardware/{xname} GET API

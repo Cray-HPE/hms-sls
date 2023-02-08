@@ -27,7 +27,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
@@ -252,8 +251,6 @@ func UpdateGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 }
 
 func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHardware, err error) {
-	log.Println("GetAllGenericHardware: Start")
-
 	// First, get the base object and all its associated data
 	baseQ := "SELECT \n" +
 		"    c1.xname,  \n" +
@@ -277,11 +274,7 @@ func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHa
 		return
 	}
 
-	log.Println("GetAllGenericHardware: Query Done")
-
 	for baseRows.Next() {
-		log.Println("GetAllGenericHardware: Process hardware")
-
 		var thisGenericHardware sls_common.GenericHardware
 		var lastUpdated time.Time
 
@@ -312,7 +305,6 @@ func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHa
 		hardware = append(hardware, thisGenericHardware)
 	}
 
-	log.Println("GetAllGenericHardware: End")
 	return
 }
 
