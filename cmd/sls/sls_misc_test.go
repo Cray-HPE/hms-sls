@@ -935,7 +935,7 @@ func TestDoDumpstate(t *testing.T) {
 		}
 	}
 
-	err = database.DeleteAllNetworks(ctx)
+	err = database.DeleteAllNetworksContext(ctx)
 	if err != nil {
 		t.Fatalf("Error deleting all networks: %s", err)
 	}

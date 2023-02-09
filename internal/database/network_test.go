@@ -55,10 +55,10 @@ func (suite *NetworkTestSuite) TestCUDNetwork_HappyPath() {
 		Type:     "ethernet",
 	}
 
-	err := InsertNetwork(ctx, network)
+	err := InsertNetworkContext(ctx, network)
 	suite.NoError(err)
 
-	err = InsertNetwork(ctx, network)
+	err = InsertNetworkContext(ctx, network)
 	suite.EqualError(err, AlreadySuch.Error())
 
 	newVersion, versionErr := GetCurrentVersion(ctx)
@@ -71,7 +71,7 @@ func (suite *NetworkTestSuite) TestCUDNetwork_HappyPath() {
 	network.IPRanges = append(network.IPRanges, "176.16.0.0/16")
 	network.Type = "mixed"
 
-	err = UpdateNetwork(ctx, network)
+	err = UpdateNetworkContext(ctx, network)
 	suite.NoError(err)
 
 	newVersion, versionErr = GetCurrentVersion(ctx)
@@ -79,7 +79,7 @@ func (suite *NetworkTestSuite) TestCUDNetwork_HappyPath() {
 	suite.Greater(newVersion, previousVersion)
 	previousVersion = newVersion
 
-	err = DeleteNetwork(ctx, network.Name)
+	err = DeleteNetworkContext(ctx, network.Name)
 	suite.NoError(err)
 
 	newVersion, versionErr = GetCurrentVersion(ctx)
@@ -103,18 +103,18 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 		},
 	}
 
-	err := InsertNetwork(ctx, network)
+	err := InsertNetworkContext(ctx, network)
 	suite.NoError(err)
 
 	// Get the data back out
-	returnedNetwork, err := GetNetworkForName(ctx, "nmn")
+	returnedNetwork, err := GetNetworkForNameContext(ctx, "nmn")
 	suite.NoError(err)
 
 	_, err = json.MarshalIndent(returnedNetwork, "\t", "\t")
 	suite.NoError(err)
 
 	// Search for a network that contains an IP address
-	returnedNetworks, err := GetNetworksContainingIP(ctx, "192.168.1.5")
+	returnedNetworks, err := GetNetworksContainingIPContext(ctx, "192.168.1.5")
 	suite.NoError(err)
 	suite.GreaterOrEqual(len(returnedNetworks), 1)
 
@@ -122,12 +122,12 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 	suite.NoError(err)
 
 	// Search for a network that doesn't exist
-	returnedNetworks, err = GetNetworksContainingIP(ctx, "1.1.1.1")
+	returnedNetworks, err = GetNetworksContainingIPContext(ctx, "1.1.1.1")
 	suite.EqualError(err, NoSuch.Error())
 	suite.Equal(len(returnedNetworks), 0)
 
 	// Do a free form search
-	returnedNetworks, err = SearchNetworks(
+	returnedNetworks, err = SearchNetworksContext(
 		ctx,
 		map[string]string{
 			"name":      network.Name,
@@ -138,7 +138,7 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 	suite.GreaterOrEqual(len(returnedNetworks), 1)
 
 	// Do a free form search using the networks extra properties
-	returnedNetworks, err = SearchNetworks(
+	returnedNetworks, err = SearchNetworksContext(
 		ctx,
 		map[string]string{},
 		map[string]interface{}{
@@ -148,7 +148,7 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 	suite.Len(returnedNetworks, 1)
 
 	// Make sure we don't get anything for this.
-	returnedNetworks, err = SearchNetworks(
+	returnedNetworks, err = SearchNetworksContext(
 		ctx,
 		map[string]string{
 			"name":      network.Name,
@@ -158,7 +158,7 @@ func (suite *NetworkTestSuite) TestRNetwork_HappyPath() {
 	suite.Equal(len(returnedNetworks), 0)
 
 	// Make sure we don't get anything for this search using the extra properties:
-	returnedNetworks, err = SearchNetworks(
+	returnedNetworks, err = SearchNetworksContext(
 		ctx,
 		map[string]string{},
 		map[string]interface{}{

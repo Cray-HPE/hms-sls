@@ -93,7 +93,7 @@ func verifyIPRanges(ipRanges []string) (err error) {
 
 // GetNetwork returns the network object matching the given name.
 func GetNetwork(ctx context.Context, name string) (sls_common.Network, error) {
-	return database.GetNetworkForName(ctx, name)
+	return database.GetNetworkForNameContext(ctx, name)
 }
 
 // InsertNetwork adds a given network into the database assuming it passes validation.
@@ -103,7 +103,7 @@ func InsertNetwork(ctx context.Context, network sls_common.Network) (validationE
 		return
 	}
 
-	dbErr = database.InsertNetwork(ctx, network)
+	dbErr = database.InsertNetworkContext(ctx, network)
 
 	return
 }
@@ -111,7 +111,7 @@ func InsertNetwork(ctx context.Context, network sls_common.Network) (validationE
 // UpdateNetwork updates all of the fields for a given network in the DB *except* for the name which is read-only.
 // Therefore, this function does no validation on network name.
 func UpdateNetwork(ctx context.Context, network sls_common.Network) error {
-	return database.UpdateNetwork(ctx, network)
+	return database.UpdateNetworkContext(ctx, network)
 }
 
 // Insert or update a network
@@ -121,35 +121,19 @@ func SetNetwork(ctx context.Context, network sls_common.Network) (verificationEr
 		return
 	}
 
-	// TODO this feels like this should be a transaction
-	_, nwerr := GetNetwork(ctx, network.Name)
-	if (nwerr != nil) && (nwerr != database.NoSuch) {
-		dbErr = nwerr
-		return
-	}
+	dbErr = database.SetNetworkContext(ctx, network)
 
-	if (nwerr != nil) && (nwerr == database.NoSuch) {
-		dbErr = database.InsertNetwork(ctx, network)
-		if dbErr != nil {
-			return
-		}
-	} else {
-		dbErr = database.UpdateNetwork(ctx, network)
-		if dbErr != nil {
-			return
-		}
-	}
 	return
 }
 
 // DeleteNetwork removes a network from the DB.
 func DeleteNetwork(ctx context.Context, networkName string) error {
-	return database.DeleteNetwork(ctx, networkName)
+	return database.DeleteNetworkContext(ctx, networkName)
 }
 
 // GetAllNetworks returns all the network objects in the DB.
 func GetAllNetworks(ctx context.Context) ([]sls_common.Network, error) {
-	return database.GetAllNetworks(ctx)
+	return database.GetAllNetworksContext(ctx)
 }
 
 func SearchNetworks(ctx context.Context, network sls_common.Network) (networks []sls_common.Network, err error) {
@@ -184,11 +168,11 @@ func SearchNetworks(ctx context.Context, network sls_common.Network) (networks [
 		return
 	}
 
-	networks, err = database.SearchNetworks(ctx, conditions, propertiesMap)
+	networks, err = database.SearchNetworksContext(ctx, conditions, propertiesMap)
 
 	return
 }
 
 func ReplaceAllNetworks(ctx context.Context, networks []sls_common.Network) error {
-	return database.ReplaceAllNetworks(ctx, networks)
+	return database.ReplaceAllNetworksContext(ctx, networks)
 }
