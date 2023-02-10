@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -126,7 +126,7 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
 
 	// Write these into the DB
-	err, created := datastore.SetXname(r.Context(), hw.Xname, hw)
+	err, created := datastore.SetXname(r.Context(), hw)
 	if err != nil {
 		log.Printf("ERROR inserting component '%s' into DB: %s\n", jdata.Xname, err)
 		sendJsonRsp(w, http.StatusInternalServerError, "error inserting object into DB")
@@ -265,7 +265,7 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
 
 	// Write back to the DB
-	err, created := datastore.SetXname(r.Context(), hw.Xname, hw)
+	err, created := datastore.SetXname(r.Context(), hw)
 	if err != nil {
 		log.Println("ERROR updating DB:", err)
 		sendJsonRsp(w, http.StatusInternalServerError, "DB update failed")

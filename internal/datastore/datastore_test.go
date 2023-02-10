@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -48,22 +48,6 @@ func (suite *DatastoreTestSuite) SetupSuite() {
 	err := database.NewDatabase()
 	if err != nil {
 		suite.FailNowf("Unable create database", "err: %s", err)
-	}
-}
-
-func (suite *DatastoreTestSuite) TestMakeKeyXname_noPrefix() {
-	got := makeKeyXname("x0c0")
-	exp := xnameKeyPrefix + "x0c0"
-	if got != exp {
-		suite.FailNowf("Got did not equal expected", "Got: %s, expected: %s", got, exp)
-	}
-}
-
-func (suite *DatastoreTestSuite) TestMakeKeyXname_Prefix() {
-	got := makeKeyXname(xnameKeyPrefix + "x0c0")
-	exp := xnameKeyPrefix + "x0c0"
-	if got != exp {
-		suite.FailNowf("Got did not equal expected", "Got: %s, expected: %s", got, exp)
 	}
 }
 
@@ -319,7 +303,7 @@ func (suite *DatastoreTestSuite) TestGetXname_okay() {
 		ExtraPropertiesRaw: nil,
 	}
 
-	err, _ := SetXname(ctx, robj.Xname, robj)
+	err, _ := SetXname(ctx, robj)
 	if err != nil {
 		suite.FailNowf("Unable to set xname", "err: %s", err)
 	}
@@ -347,7 +331,7 @@ func (suite *DatastoreTestSuite) TestSetXname_okay() {
 	robj := sls_common.GenericHardware{
 		Parent:             "x0",
 		Children:           []string{},
-		Xname:              "x0c01",
+		Xname:              "x000c0001",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassMountain,
 		TypeString:         xnametypes.Chassis,
@@ -359,7 +343,7 @@ func (suite *DatastoreTestSuite) TestSetXname_okay() {
 		suite.FailNowf("Unexpected error configuring storage", "err: %s", err)
 	}
 
-	err, _ = SetXname(ctx, "x000c0001", robj)
+	err, _ = SetXname(ctx, robj)
 	if err != nil {
 		suite.FailNowf("Unexpected error setting object", "err: %s", err)
 	}
@@ -387,7 +371,7 @@ func (suite *DatastoreTestSuite) Test_DeleteXname() {
 	robj := sls_common.GenericHardware{
 		Parent:     "x0c01",
 		Children:   []string{},
-		Xname:      "x0c1w02",
+		Xname:      "x000c1w002",
 		Type:       sls_common.MgmtSwitch,
 		Class:      sls_common.ClassRiver,
 		TypeString: xnametypes.MgmtSwitch,
@@ -404,7 +388,7 @@ func (suite *DatastoreTestSuite) Test_DeleteXname() {
 		suite.FailNowf("Unexpected error configuring storage", "err: %s", err)
 	}
 
-	err, created := SetXname(ctx, "x000c1w002", robj)
+	err, created := SetXname(ctx, robj)
 	if err != nil {
 		suite.FailNowf("Unexpected error setting object", "err: %s", err)
 	}

@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -290,7 +290,7 @@ func TestDoLoadstateWithKey(t *testing.T) {
 
 	// Preload the database with some data so after we make the request we can make sure it's gone
 	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, xnametypes.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
-	datastore.SetXname(ctx, sampleObj.Xname, sampleObj)
+	datastore.SetXname(ctx, sampleObj)
 	sampleNw := sls_common.Network{"DUMMY", "Sample dummy network", []string{}, sls_common.NetworkTypeEthernet, 0, "2014-07-16 20:55:46 +0000 UTC", nil}
 	datastore.SetNetwork(ctx, sampleNw)
 
@@ -489,7 +489,7 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 
 	// Preload the database with some data so after we make the request we can make sure it's gone
 	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, xnametypes.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
-	datastore.SetXname(ctx, sampleObj.Xname, sampleObj)
+	datastore.SetXname(ctx, sampleObj)
 	sampleNw := sls_common.Network{"DUMMY", "Sample dummy network", []string{}, sls_common.NetworkTypeEthernet, 0, "2014-07-16 20:55:46 +0000 UTC", nil}
 	datastore.SetNetwork(ctx, sampleNw)
 
@@ -906,7 +906,7 @@ func TestDoDumpstate(t *testing.T) {
 		t.Error("Error with test setup:", kerr)
 	}
 
-	err := database.DeleteAllGenericHardware(ctx)
+	err := database.DeleteAllGenericHardwareContext(ctx)
 	if err != nil {
 		t.Errorf("Error deleting all hardware: %s", err)
 	}
@@ -929,7 +929,7 @@ func TestDoDumpstate(t *testing.T) {
 
 	for _, obj := range inputObjs {
 		t.Logf("Inserting test data for %s: %v", obj.Xname, obj)
-		err, _ = datastore.SetXname(ctx, obj.Xname, obj)
+		err, _ = datastore.SetXname(ctx, obj)
 		if err != nil {
 			t.Fatalf("Failed ot insert %s: %s", obj.Xname, err)
 		}

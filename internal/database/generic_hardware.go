@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -30,12 +30,33 @@ import (
 	"time"
 
 	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
+	"github.com/Cray-HPE/hms-xname/xnametypes"
 	"github.com/lib/pq"
 
 	"github.com/pkg/errors"
 )
 
-func InsertGenericHardware(ctx context.Context, hardware sls_common.GenericHardware) (err error) {
+func InsertGenericHardwareContext(ctx context.Context, hardware sls_common.GenericHardware) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	err := InsertGenericHardware(tx, hardware)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func InsertGenericHardware(tx *sql.Tx, hardware sls_common.GenericHardware) (err error) {
 	q := "INSERT INTO \n" +
 		"    components (xname, \n" +
 		"                parent, \n" +
@@ -57,26 +78,18 @@ func InsertGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 		return err
 	}
 
-	trans, beginErr := DB.BeginTx(ctx, nil)
-	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return err
-	}
-
-	version, err := IncrementVersion(trans, hardware.Xname)
+	version, err := IncrementVersion(tx, hardware.Xname)
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
-	result, transErr := trans.Exec(q, hardware.Xname, hardware.Parent, hardware.Type, hardware.Class, string(jsonBytes), version)
+	result, transErr := tx.Exec(q, hardware.Xname, hardware.Parent, hardware.Type, hardware.Class, string(jsonBytes), version)
 	if transErr != nil {
 		switch transErr.(type) {
 		case *pq.Error:
 			if transErr.(*pq.Error).Code.Name() == "unique_violation" {
 				err = AlreadySuch
-				_ = trans.Rollback()
 				return
 			}
 		}
@@ -84,7 +97,6 @@ func InsertGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 		// I bet we're getting back the wrong (or no) ID
 		println(transErr)
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
-		_ = trans.Rollback()
 		return
 	}
 
@@ -92,48 +104,52 @@ func InsertGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 	counter, rowsErr := result.RowsAffected()
 	if rowsErr != nil {
 		err = errors.Errorf("insert generic component failed: %s", rowsErr)
-		_ = trans.Rollback()
 		return
 	}
 	if counter < 1 {
 		err = NoSuch
-		_ = trans.Rollback()
-		return
-	}
-
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 
 	return
 }
 
-func DeleteGenericHardware(ctx context.Context, hardware sls_common.GenericHardware) (err error) {
+func DeleteGenericHardwareContext(ctx context.Context, hardware sls_common.GenericHardware) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	err := DeleteGenericHardware(tx, hardware)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func DeleteGenericHardware(tx *sql.Tx, hardware sls_common.GenericHardware) (err error) {
 	q := "DELETE \n" +
 		"FROM \n" +
 		"    components \n" +
 		"WHERE \n" +
 		"    xname = $1 "
 
-	trans, beginErr := DB.BeginTx(ctx, nil)
-	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
-	}
-
-	_, err = IncrementVersion(trans, hardware.Xname)
+	_, err = IncrementVersion(tx, hardware.Xname)
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
-	result, transErr := trans.Exec(q, hardware.Xname)
+	result, transErr := tx.Exec(q, hardware.Xname)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
-		_ = trans.Rollback()
 		return
 	}
 
@@ -141,57 +157,107 @@ func DeleteGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 	counter, rowsErr := result.RowsAffected()
 	if rowsErr != nil {
 		err = errors.Errorf("delete generic component failed: %s", rowsErr)
-		_ = trans.Rollback()
 		return
 	}
 	if counter < 1 {
 		err = NoSuch
-		_ = trans.Rollback()
-		return
-	}
-
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 
 	return
 }
 
-func DeleteAllGenericHardware(ctx context.Context) (err error) {
-	q := "TRUNCATE " +
-		"    components "
-
-	trans, beginErr := DB.BeginTx(ctx, nil)
+func DeleteGenericHardwareByXnameContext(ctx context.Context, xname string) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
 	}
 
-	_, err = IncrementVersion(trans, "delete all hardware")
+	err := DeleteGenericHardwareByXname(tx, xname)
 	if err != nil {
-		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
+		tx.Rollback()
 		return err
 	}
 
-	_, transErr := trans.Exec(q)
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func DeleteGenericHardwareByXname(tx *sql.Tx, xname string) error {
+	// check if xname exists
+	_, err := GetGenericHardwareFromXname(tx, xnametypes.NormalizeHMSCompID(xname))
+	if err != nil {
+		return err
+	}
+	gh := sls_common.GenericHardware{}
+	gh.Xname = xnametypes.NormalizeHMSCompID(xname)
+	return DeleteGenericHardware(tx, gh)
+}
+
+func DeleteAllGenericHardwareContext(ctx context.Context) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	err := DeleteAllGenericHardware(tx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func DeleteAllGenericHardware(tx *sql.Tx) (err error) {
+	q := "TRUNCATE " +
+		"    components "
+
+	_, err = IncrementVersion(tx, "delete all hardware")
+	if err != nil {
+		err = errors.Errorf("insert to version_history failed: %s", err)
+		return err
+	}
+
+	_, transErr := tx.Exec(q)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
 		return
 	}
 
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
-		return
-	}
-
 	return
 }
 
-func UpdateGenericHardware(ctx context.Context, hardware sls_common.GenericHardware) (err error) {
+func UpdateGenericHardwareContext(ctx context.Context, hardware sls_common.GenericHardware) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	err := UpdateGenericHardware(tx, hardware)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func UpdateGenericHardware(tx *sql.Tx, hardware sls_common.GenericHardware) (err error) {
 	q := "UPDATE components \n" +
 		"SET \n" +
 		"    parent           = $2, \n" +
@@ -208,23 +274,15 @@ func UpdateGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 		return
 	}
 
-	trans, beginErr := DB.BeginTx(ctx, nil)
-	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
-	}
-
-	version, err := IncrementVersion(trans, hardware.Xname)
+	version, err := IncrementVersion(tx, hardware.Xname)
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
-	result, transErr := trans.Exec(q, hardware.Xname, hardware.Parent, hardware.Type, hardware.Class, string(jsonBytes), version)
+	result, transErr := tx.Exec(q, hardware.Xname, hardware.Parent, hardware.Type, hardware.Class, string(jsonBytes), version)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
-		_ = trans.Rollback()
 		return
 	}
 
@@ -232,25 +290,74 @@ func UpdateGenericHardware(ctx context.Context, hardware sls_common.GenericHardw
 	counter, rowsErr := result.RowsAffected()
 	if rowsErr != nil {
 		err = errors.Errorf("update generic component failed: %s", rowsErr)
-		_ = trans.Rollback()
 		return
 	}
 	if counter < 1 {
 		err = NoSuch
-		_ = trans.Rollback()
-		return
-	}
-
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 
 	return
 }
 
-func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHardware, err error) {
+func SetGenericHardwareContext(ctx context.Context, obj sls_common.GenericHardware) (err error, created bool) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr), false
+	}
+
+	err, created = SetGenericHardware(tx, obj)
+	if err != nil {
+		tx.Rollback()
+		return err, false
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr), false
+	}
+
+	return err, created
+}
+
+func SetGenericHardware(tx *sql.Tx, obj sls_common.GenericHardware) (err error, created bool) {
+	created = false
+
+	// check if xname exists
+	_, err = GetGenericHardwareFromXname(tx, obj.Xname)
+	if err != nil && err != NoSuch {
+		return err, created
+	} else if err == NoSuch {
+		err = InsertGenericHardware(tx, obj)
+		created = true
+	} else {
+		err = UpdateGenericHardware(tx, obj)
+	}
+
+	return err, created
+}
+
+func GetAllGenericHardwareContext(ctx context.Context) (hardware []sls_common.GenericHardware, err error) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return nil, errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	hardware, err = GetAllGenericHardware(tx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return nil, errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return
+}
+
+func GetAllGenericHardware(tx *sql.Tx) (hardware []sls_common.GenericHardware, err error) {
 	// First, get the base object and all its associated data
 	baseQ := "SELECT \n" +
 		"    c1.xname,  \n" +
@@ -268,7 +375,7 @@ func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHa
 		"    ON c1.xname = c2.parent \n" +
 		"    GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties"
 
-	baseRows, baseErr := DB.QueryContext(ctx, baseQ)
+	baseRows, baseErr := tx.Query(baseQ)
 	if baseErr != nil {
 		err = errors.Errorf("unable to query generic hardware: %s", baseErr)
 		return
@@ -308,7 +415,27 @@ func GetAllGenericHardware(ctx context.Context) (hardware []sls_common.GenericHa
 	return
 }
 
-func GetGenericHardwareFromXname(ctx context.Context, xname string) (hardware sls_common.GenericHardware, err error) {
+func GetGenericHardwareFromXnameContext(ctx context.Context, xname string) (hardware sls_common.GenericHardware, err error) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return sls_common.GenericHardware{}, errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	hardware, err = GetGenericHardwareFromXname(tx, xname)
+	if err != nil {
+		tx.Rollback()
+		return sls_common.GenericHardware{}, err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return sls_common.GenericHardware{}, errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return
+}
+
+func GetGenericHardwareFromXname(tx *sql.Tx, xname string) (hardware sls_common.GenericHardware, err error) {
 	// First, get the base object and all its associated data
 	baseQ := "SELECT \n" +
 		"    c1.xname, \n" +
@@ -328,7 +455,7 @@ func GetGenericHardwareFromXname(ctx context.Context, xname string) (hardware sl
 		"    c1.xname = $1 \n" +
 		"GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties"
 
-	baseRow := DB.QueryRowContext(ctx, baseQ, xname)
+	baseRow := tx.QueryRow(baseQ, xname)
 
 	var extraPropertiesBytes []byte
 	var lastUpdated time.Time
@@ -362,10 +489,31 @@ func GetGenericHardwareFromXname(ctx context.Context, xname string) (hardware sl
 
 func GetGenericHardwareForExtraProperties(ctx context.Context, properties map[string]interface{}) (hardware []sls_common.GenericHardware,
 	err error) {
-	return SearchGenericHardware(ctx, nil, properties)
+	return SearchGenericHardwareContext(ctx, nil, properties)
 }
 
-func SearchGenericHardware(ctx context.Context, conditions map[string]string, properties map[string]interface{}) (
+func SearchGenericHardwareContext(ctx context.Context, conditions map[string]string, properties map[string]interface{}) (
+	hardware []sls_common.GenericHardware, err error) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return nil, errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	hardware, err = SearchGenericHardware(tx, conditions, properties)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return nil, errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return
+}
+
+func SearchGenericHardware(tx *sql.Tx, conditions map[string]string, properties map[string]interface{}) (
 	hardware []sls_common.GenericHardware, err error) {
 	if len(conditions) == 0 && len(properties) == 0 {
 		err = errors.Errorf("no conditions/properties with which to search")
@@ -434,7 +582,7 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 
 	q = q + "GROUP BY c1.xname, c1.parent, c1.comp_type, c1.comp_class, version_history.timestamp, c1.extra_properties \n"
 
-	rows, queryErr := DB.QueryContext(ctx, q, parameters...)
+	rows, queryErr := tx.Query(q, parameters...)
 	if queryErr != nil {
 		err = errors.Errorf("unable to query extra properties: %s", queryErr)
 		return
@@ -473,17 +621,30 @@ func SearchGenericHardware(ctx context.Context, conditions map[string]string, pr
 	return
 }
 
-func ReplaceAllGenericHardware(ctx context.Context, hardware []sls_common.GenericHardware) (err error) {
-	trans, beginErr := DB.BeginTx(ctx, nil)
+func ReplaceAllGenericHardwareContext(ctx context.Context, hardware []sls_common.GenericHardware) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
 	}
 
-	version, err := IncrementVersion(trans, "replaced all components")
+	err := ReplaceAllGenericHardware(tx, hardware)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func ReplaceAllGenericHardware(tx *sql.Tx, hardware []sls_common.GenericHardware) (err error) {
+	version, err := IncrementVersion(tx, "replaced all components")
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
@@ -491,19 +652,17 @@ func ReplaceAllGenericHardware(ctx context.Context, hardware []sls_common.Generi
 	q := "TRUNCATE " +
 		"    components "
 
-	_, transErr := trans.Exec(q)
+	_, transErr := tx.Exec(q)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
-		_ = trans.Rollback()
 		return
 	}
 
 	// Now bulk load the passed in hardware into the database using a prepared statement.
-	statement, prepareErr := trans.Prepare(pq.CopyIn("components",
+	statement, prepareErr := tx.Prepare(pq.CopyIn("components",
 		"xname", "parent", "comp_type", "comp_class", "last_updated_version", "extra_properties"))
 	if prepareErr != nil {
 		err = errors.Errorf("unable to prepare statement: %s", prepareErr)
-		_ = trans.Rollback()
 		return
 	}
 
@@ -511,7 +670,6 @@ func ReplaceAllGenericHardware(ctx context.Context, hardware []sls_common.Generi
 		jsonBytes, jsonErr := json.Marshal(component.ExtraPropertiesRaw)
 		if jsonErr != nil {
 			err = errors.Errorf("unable to marshal ExtendedProperties: %s", jsonErr)
-			_ = trans.Rollback()
 			return
 		}
 
@@ -519,7 +677,6 @@ func ReplaceAllGenericHardware(ctx context.Context, hardware []sls_common.Generi
 			version, string(jsonBytes))
 		if execErr != nil {
 			err = errors.Errorf("unable to exec statement: %s", execErr)
-			_ = trans.Rollback()
 			return
 		}
 	}
@@ -527,21 +684,12 @@ func ReplaceAllGenericHardware(ctx context.Context, hardware []sls_common.Generi
 	_, statementErr := statement.Exec()
 	if statementErr != nil {
 		err = errors.Errorf("unable to exec statement: %s", statementErr)
-		_ = trans.Rollback()
 		return
 	}
 
 	statementErr = statement.Close()
 	if statementErr != nil {
 		err = errors.Errorf("unable to close statement: %s", statementErr)
-		_ = trans.Rollback()
-		return
-	}
-
-	// Now finally we can commit the entire transaction. Assuming this works, we're done here.
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 

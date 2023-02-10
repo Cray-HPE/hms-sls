@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -145,7 +145,7 @@ func validateType(typeObj sls_common.HMSStringType) error {
 // ReplaceGenericHardware will in a single transaction remove all hardware from the database and subsequently insert
 // all of the provided hardware in its place. This make this a safe function to use for any bulk load operations.
 func ReplaceGenericHardware(ctx context.Context, hardware []sls_common.GenericHardware) error {
-	return database.ReplaceAllGenericHardware(ctx, hardware)
+	return database.ReplaceAllGenericHardwareContext(ctx, hardware)
 }
 
 func SearchGenericHardware(ctx context.Context, searchHardware sls_common.GenericHardware) (returnHardware []sls_common.GenericHardware, validationErr error, dbErr error) {
@@ -197,7 +197,7 @@ func SearchGenericHardware(ctx context.Context, searchHardware sls_common.Generi
 		return
 	}
 
-	returnHardware, dbErr = database.SearchGenericHardware(ctx, conditions, propertiesMap)
+	returnHardware, dbErr = database.SearchGenericHardwareContext(ctx, conditions, propertiesMap)
 
 	return
 }
