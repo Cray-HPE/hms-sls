@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2023-02-13
+
+### Added
+- Created a simple benchmark tool that can stress test SLS with many concurrent requests. 
+
+### Changed
+- Updated Golang to 1.19
+- Introduced a caching HTTP middleware. This feature is disabled by default.
+- Database interaction improvements
+  - Pass contexts from the HTTP layer into database layer to cancel database operations if the HTTP requests is canceled.
+  - Database functions now accept `*tx.SQL` to allow use within database transactions.  
+  - Created `*Context` functions that warp the database functions within a transaction that is canceled by the provided context.
+  - `SetGenericHardwareContext` and `SetNetworkContext` were added to atomicity create or update hardware and network information, instead of running 2-3 database queriers that could leave the database in an inconsistent state if canceled.  
+  - `SearchGenericHardware` was modified to perform a single query like `GetAllGenericHardware`, as it was running additional SQL queries while processing data from another query. This type of database interaction can cause SLS to become deadlocked. 
+  - Removed `getChildrenForXname` as it is no longer required.
+- Datastore changes
+  - Pass in contexts from HTTP layer for use with the database layer. 
+  - Removed xname parameter from `SetXname` as it was unused, as the xname was being provided from the generic hardware object.
+- SLS Client
+  - Added `GetNetworks` method to call `/v1/networks`
+  - Added `GetNetwork` method to call `/v1/networks/$NETWORK_NAME`
+
 ## [2.1.0] - 2023-01-26
 
 ### Fixed
