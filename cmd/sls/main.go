@@ -274,17 +274,14 @@ func main() {
 		}
 
 		// Apply caching middleware, but exclude it from liveness readiness
-		// router.Use(cacheClient.Middleware)
 		router.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/v1/readiness" || r.URL.Path == "/v1/liveness" {
 					// For readiness and liveness bypass the caching layer, as this would obscure and delay responses that k8s
 					// needs for livesness and readiness probes
-					log.Println("Not sending to cache layer", r.URL)
 					next.ServeHTTP(w, r)
 				} else {
 					// Continue onto the caching middle ware
-					log.Println("Sending to cache layer", r.URL)
 					cacheClient.Middleware(next).ServeHTTP(w, r)
 				}
 			})
