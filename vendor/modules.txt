@@ -7,7 +7,7 @@ github.com/Cray-HPE/hms-s3
 # github.com/Cray-HPE/hms-xname v1.1.0
 ## explicit
 github.com/Cray-HPE/hms-xname/xnametypes
-# github.com/aws/aws-sdk-go v1.32.4
+# github.com/aws/aws-sdk-go v1.34.0
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
