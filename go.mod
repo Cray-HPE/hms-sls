@@ -6,7 +6,7 @@ require (
 	github.com/Cray-HPE/hms-base/v2 v2.0.1
 	github.com/Cray-HPE/hms-s3 v1.9.2
 	github.com/Cray-HPE/hms-xname v1.1.0
-	github.com/aws/aws-sdk-go v1.32.4
+	github.com/aws/aws-sdk-go v1.34.0
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/gorilla/mux v1.7.4
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
