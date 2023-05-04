@@ -22,8 +22,12 @@
 
 # Dockerfile for building HMS SLS.
 
+ARG REGISTRY_HOST=artifactory.algol60.net/docker.io/library
+FROM ${REGISTRY_HOST}/golang:1.16-alpine AS build-base
+
 # Build base just has the packages installed we need.
-FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
+#FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
+#FROM golang:1.16-alpine as build-base
 
 RUN set -ex \
     && apk -U upgrade \
@@ -53,7 +57,8 @@ RUN set -ex \
 
 ### Final Stage ###
 
-FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.15
+#FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.15
+FROM ${REGISTRY_HOST}/alpine:3.15
 LABEL maintainer="Hewlett Packard Enterprise"
 STOPSIGNAL SIGTERM
 EXPOSE 8376
