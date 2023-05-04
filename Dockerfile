@@ -22,12 +22,11 @@
 
 # Dockerfile for building HMS SLS.
 
+# We expect this to be passed in as a build parameter, but fall back to the algol60 registry
 ARG REGISTRY_HOST=artifactory.algol60.net/docker.io/library
-FROM ${REGISTRY_HOST}/golang:1.16-alpine AS build-base
 
 # Build base just has the packages installed we need.
-#FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
-#FROM golang:1.16-alpine as build-base
+FROM ${REGISTRY_HOST}/golang:1.16-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \

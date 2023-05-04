@@ -2,7 +2,7 @@ version: '3.1'
 services:
   postgres:
     hostname: postgres
-    image: artifactory.algol60.net/docker.io/library/postgres:11-alpine
+    image: ${REGISTRY_HOST:-artifactory.algol60.net/docker.io/library}/postgres:11-alpine
     environment:
       - POSTGRES_USER=slsuser
       - POSTGRES_DB=sls
@@ -19,7 +19,7 @@ services:
     depends_on:
       - postgres
   s3:
-    image: artifactory.algol60.net/docker.io/minio/minio:latest
+    image: ${REGISTRY_HOST:-artifactory.algol60.net/docker.io}/minio/minio:RELEASE.2023-04-28T18-11-17Z
     hostname: s3
     environment:
       MINIO_ACCESS_KEY: s3-access-key
@@ -28,7 +28,7 @@ services:
     ports:
       - "9000:9000"
   s3-init:
-    image: artifactory.algol60.net/docker.io/minio/mc:latest
+    image: ${REGISTRY_HOST:-artifactory.algol60.net/docker.io/}/minio/mc:RELEASE.2023-04-28T18-11-17Z
     hostname: s3-init
     environment:
       - MC_HOST_S3=http://s3-access-key:s3-secret-key@s3:9000

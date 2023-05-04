@@ -21,3 +21,4 @@ generated*.json
 *.csr
 *.key
 *.pem
+config.env
