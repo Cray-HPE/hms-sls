@@ -23,10 +23,10 @@
 # Dockerfile for building HMS SLS.
 
 # We expect this to be passed in as a build parameter, but fall back to the algol60 registry
-ARG REGISTRY_HOST=artifactory.algol60.net/docker.io/library
+ARG REGISTRY_HOST=artifactory.algol60.net/docker.io/library/
 
 # Build base just has the packages installed we need.
-FROM ${REGISTRY_HOST}/golang:1.16-alpine AS build-base
+FROM ${REGISTRY_HOST}golang:1.16-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
@@ -56,8 +56,7 @@ RUN set -ex \
 
 ### Final Stage ###
 
-#FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.15
-FROM ${REGISTRY_HOST}/alpine:3.15
+FROM ${REGISTRY_HOST}alpine:3.15
 LABEL maintainer="Hewlett Packard Enterprise"
 STOPSIGNAL SIGTERM
 EXPOSE 8376

@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   s3:
-    image: ${REGISTRY_HOST:-artifactory.algol60.net/docker.io/minio}/minio:RELEASE.2023-04-28T18-11-17Z
+    image: ${REGISTRY_HOST:-artifactory.algol60.net/docker.io/minio/}minio:RELEASE.2023-04-28T18-11-17Z
     hostname: s3
     environment:
       MINIO_ACCESS_KEY: s3-access-key
@@ -10,7 +10,7 @@ services:
     ports:
       - "9000:9000"
   s3-init:
-    image: ${REGISTRY_HOST:-artifactory.algol60.net/docker.io/minio}/minio:RELEASE.2023-04-28T18-11-17Z
+    image: ${REGISTRY_HOST:-artifactory.algol60.net/docker.io/minio/}minio:RELEASE.2023-04-28T18-11-17Z
     hostname: s3-init
     environment:
       - MC_HOST_S3=http://s3-access-key:s3-secret-key@s3:9000

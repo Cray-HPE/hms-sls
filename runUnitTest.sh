@@ -45,7 +45,7 @@ fi
 set -x
 
 # Set the default docker build command and allow REGISTRY_HOST to be specified in the environment
-REGISTRY_HOST=${REGISTRY_HOST:-artifactory.algol60.net/docker.io/library}
+REGISTRY_HOST=${REGISTRY_HOST:-artifactory.algol60.net/docker.io/library/}
 DOCKER_BUILD_COMMAND="docker build --no-cache --build-arg REGISTRY_HOST=${REGISTRY_HOST}"
 
 # Need to setup a working DB environment
