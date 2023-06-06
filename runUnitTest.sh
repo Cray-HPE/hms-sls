@@ -44,6 +44,10 @@ fi
 # Print executions
 set -x
 
+# Set the default docker build command and allow REGISTRY_HOST to be specified in the environment
+REGISTRY_HOST=${REGISTRY_HOST:-artifactory.algol60.net/docker.io/library/}
+DOCKER_BUILD_COMMAND="docker build --no-cache --build-arg REGISTRY_HOST=${REGISTRY_HOST}"
+
 # Need to setup a working DB environment
 PROJECT=$RANDOM
 NETWORK_NAME="${PROJECT}_default"
@@ -57,11 +61,8 @@ fi
 
 docker wait $INIT_CONTAINER_NAME
 
-# Build the build base image (if it's not already)
-docker build -t cray/sls-base --target base .
-
 # Run the tests.
-DOCKER_BUILDKIT=0 docker build --network $NETWORK_NAME -t cray/sls-unit-testing -f Dockerfile.testing --no-cache .
+${DOCKER_BUILD_COMMAND} --network $NETWORK_NAME -t cray/sls-unit-testing -f Dockerfile.testing .
 build_result=$?
 if [ $build_result -ne 0 ]; then
   echo "Unit tests failed!"
