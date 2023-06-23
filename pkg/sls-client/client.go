@@ -197,3 +197,59 @@ func (sc *SLSClient) PutNetwork(ctx context.Context, network sls_common.Network)
 
 	return nil
 }
+
+func (sc *SLSClient) GetNetworks(ctx context.Context) ([]sls_common.Network, error) {
+	// Build up the request
+	request, err := http.NewRequestWithContext(ctx, "GET", sc.baseURL+"/v1/networks", nil)
+	if err != nil {
+		return nil, err
+	}
+	base.SetHTTPUserAgent(request, sc.instanceName)
+	sc.addAPITokenHeader(request)
+
+	// Perform the request!
+	response, err := sc.client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code %d expected 200", response.StatusCode)
+	}
+
+	var networks []sls_common.Network
+	if err := json.NewDecoder(response.Body).Decode(&networks); err != nil {
+		return nil, err
+	}
+
+	return networks, nil
+}
+
+func (sc *SLSClient) GetNetwork(ctx context.Context, networkName string) (sls_common.Network, error) {
+	// Build up the request
+	request, err := http.NewRequestWithContext(ctx, "GET", sc.baseURL+"/v1/networks/"+networkName, nil)
+	if err != nil {
+		return sls_common.Network{}, err
+	}
+	base.SetHTTPUserAgent(request, sc.instanceName)
+	sc.addAPITokenHeader(request)
+
+	// Perform the request!
+	response, err := sc.client.Do(request)
+	if err != nil {
+		return sls_common.Network{}, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return sls_common.Network{}, fmt.Errorf("unexpected status code %d expected 200", response.StatusCode)
+	}
+
+	var network sls_common.Network
+	if err := json.NewDecoder(response.Body).Decode(&network); err != nil {
+		return sls_common.Network{}, err
+	}
+
+	return network, nil
+}

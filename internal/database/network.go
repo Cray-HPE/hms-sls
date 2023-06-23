@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -33,7 +34,27 @@ import (
 	"github.com/pkg/errors"
 )
 
-func InsertNetwork(network sls_common.Network) (err error) {
+func InsertNetworkContext(ctx context.Context, network sls_common.Network) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	err := InsertNetwork(tx, network)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func InsertNetwork(tx *sql.Tx, network sls_common.Network) (err error) {
 	q := "INSERT INTO \n" +
 		"    network (name, \n" +
 		"             full_name, \n" +
@@ -55,20 +76,13 @@ func InsertNetwork(network sls_common.Network) (err error) {
 		return
 	}
 
-	trans, beginErr := DB.Begin()
-	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
-	}
-
-	version, err := IncrementVersion(trans, network.Name)
+	version, err := IncrementVersion(tx, network.Name)
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
-	result, transErr := trans.Exec(q, network.Name, network.FullName, pq.Array(network.IPRanges), network.Type, string(jsonBytes), version)
+	result, transErr := tx.Exec(q, network.Name, network.FullName, pq.Array(network.IPRanges), network.Type, string(jsonBytes), version)
 	if transErr != nil {
 		switch transErr.(type) {
 		case *pq.Error:
@@ -86,48 +100,53 @@ func InsertNetwork(network sls_common.Network) (err error) {
 	counter, rowsErr := result.RowsAffected()
 	if rowsErr != nil {
 		err = errors.Errorf("insert network failed: %s", rowsErr)
-		_ = trans.Rollback()
 		return
 	}
 	if counter < 1 {
 		err = NoSuch
-		_ = trans.Rollback()
-		return
-	}
-
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 
 	return
 }
 
-func DeleteNetwork(networkName string) (err error) {
+func DeleteNetworkContext(ctx context.Context, networkName string) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+
+	}
+
+	err := DeleteNetwork(tx, networkName)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func DeleteNetwork(tx *sql.Tx, networkName string) (err error) {
 	q := "DELETE \n" +
 		"FROM \n" +
 		"    network \n" +
 		"WHERE \n" +
 		"    name = $1 "
 
-	trans, beginErr := DB.Begin()
-	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
-	}
-
-	_, err = IncrementVersion(trans, networkName)
+	_, err = IncrementVersion(tx, networkName)
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
-	result, transErr := trans.Exec(q, networkName)
+	result, transErr := tx.Exec(q, networkName)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
-		_ = trans.Rollback()
 		return
 	}
 
@@ -135,57 +154,75 @@ func DeleteNetwork(networkName string) (err error) {
 	counter, rowsErr := result.RowsAffected()
 	if rowsErr != nil {
 		err = errors.Errorf("delete generic component failed: %s", rowsErr)
-		_ = trans.Rollback()
 		return
 	}
 	if counter < 1 {
 		err = NoSuch
-		_ = trans.Rollback()
-		return
-	}
-
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 
 	return
 }
 
-func DeleteAllNetworks() (err error) {
-	q := "TRUNCATE " +
-		"    network "
-
-	trans, beginErr := DB.Begin()
+func DeleteAllNetworksContext(ctx context.Context) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
 	}
 
-	_, err = IncrementVersion(trans, "delete all networks")
+	err := DeleteAllNetworks(tx)
 	if err != nil {
-		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
+		tx.Rollback()
 		return err
 	}
 
-	_, transErr := trans.Exec(q)
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func DeleteAllNetworks(tx *sql.Tx) (err error) {
+	q := "TRUNCATE " +
+		"    network "
+
+	_, err = IncrementVersion(tx, "delete all networks")
+	if err != nil {
+		err = errors.Errorf("insert to version_history failed: %s", err)
+		return err
+	}
+
+	_, transErr := tx.Exec(q)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
 		return
 	}
-
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
-		return
-	}
-
 	return
 }
 
-func UpdateNetwork(network sls_common.Network) (err error) {
+func UpdateNetworkContext(ctx context.Context, network sls_common.Network) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	err := UpdateNetwork(tx, network)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func UpdateNetwork(tx *sql.Tx, network sls_common.Network) (err error) {
 	q := "UPDATE network \n" +
 		"SET \n" +
 		"    full_name        = $2, \n" +
@@ -202,20 +239,13 @@ func UpdateNetwork(network sls_common.Network) (err error) {
 		return
 	}
 
-	trans, beginErr := DB.Begin()
-	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
-	}
-
-	version, err := IncrementVersion(trans, network.Name)
+	version, err := IncrementVersion(tx, network.Name)
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
-	result, transErr := trans.Exec(q, network.Name, network.FullName, pq.Array(network.IPRanges), network.Type, string(jsonBytes), version)
+	result, transErr := tx.Exec(q, network.Name, network.FullName, pq.Array(network.IPRanges), network.Type, string(jsonBytes), version)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
 		return
@@ -225,25 +255,71 @@ func UpdateNetwork(network sls_common.Network) (err error) {
 	counter, rowsErr := result.RowsAffected()
 	if rowsErr != nil {
 		err = errors.Errorf("update network failed: %s", rowsErr)
-		_ = trans.Rollback()
 		return
 	}
 	if counter < 1 {
 		err = NoSuch
-		_ = trans.Rollback()
-		return
-	}
-
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 
 	return
 }
 
-func GetAllNetworks() (networks []sls_common.Network, err error) {
+func SetNetworkContext(ctx context.Context, network sls_common.Network) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	_, err := GetNetworkForName(tx, network.Name)
+	if (err != nil) && (err != NoSuch) {
+		tx.Rollback()
+		return err
+	}
+
+	if (err != nil) && (err == NoSuch) {
+		err = InsertNetwork(tx, network)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	} else {
+		err = UpdateNetwork(tx, network)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func GetAllNetworksContext(ctx context.Context) ([]sls_common.Network, error) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return nil, errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	networks, err := GetAllNetworks(tx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return nil, errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return networks, nil
+}
+
+func GetAllNetworks(tx *sql.Tx) (networks []sls_common.Network, err error) {
 	q := "SELECT \n" +
 		"    name, \n" +
 		"    full_name, \n" +
@@ -257,7 +333,7 @@ func GetAllNetworks() (networks []sls_common.Network, err error) {
 		"    version_history \n" +
 		"ON network.last_updated_version = version_history.version \n"
 
-	rows, rowsErr := DB.Query(q)
+	rows, rowsErr := tx.Query(q)
 	if rowsErr != nil {
 		err = errors.Errorf("unable to query network: %s", rowsErr)
 		return
@@ -294,7 +370,27 @@ func GetAllNetworks() (networks []sls_common.Network, err error) {
 	return
 }
 
-func GetNetworkForName(name string) (network sls_common.Network, err error) {
+func GetNetworkForNameContext(ctx context.Context, name string) (sls_common.Network, error) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return sls_common.Network{}, errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	network, err := GetNetworkForName(tx, name)
+	if err != nil {
+		tx.Rollback()
+		return sls_common.Network{}, err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return sls_common.Network{}, errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return network, nil
+}
+
+func GetNetworkForName(tx *sql.Tx, name string) (network sls_common.Network, err error) {
 	q := "SELECT \n" +
 		"    name, \n" +
 		"    full_name, \n" +
@@ -310,7 +406,7 @@ func GetNetworkForName(name string) (network sls_common.Network, err error) {
 		"WHERE \n" +
 		"    name = $1 "
 
-	row := DB.QueryRow(q, name)
+	row := tx.QueryRow(q, name)
 
 	var extraPropertiesBytes []byte
 	var lastUpdated time.Time
@@ -337,13 +433,55 @@ func GetNetworkForName(name string) (network sls_common.Network, err error) {
 	return
 }
 
-func GetNetworksContainingIP(addr string) (networks []sls_common.Network, err error) {
-	return SearchNetworks(map[string]string{
-		"ip_ranges": addr,
-	}, map[string]interface{}{})
+func GetNetworksContainingIPContext(ctx context.Context, addr string) ([]sls_common.Network, error) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return nil, errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	networks, err := GetNetworksContainingIP(tx, addr)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return nil, errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return networks, nil
 }
 
-func SearchNetworks(conditions map[string]string, properties map[string]interface{}) (networks []sls_common.Network, err error) {
+func GetNetworksContainingIP(tx *sql.Tx, addr string) (networks []sls_common.Network, err error) {
+	return SearchNetworks(tx,
+		map[string]string{
+			"ip_ranges": addr,
+		}, map[string]interface{}{},
+	)
+}
+
+func SearchNetworksContext(ctx context.Context, conditions map[string]string, properties map[string]interface{}) ([]sls_common.Network, error) {
+	tx, beginErr := DB.BeginTx(ctx, nil)
+	if beginErr != nil {
+		return nil, errors.Errorf("unable to begin transaction: %s", beginErr)
+	}
+
+	networks, err := SearchNetworks(tx, conditions, properties)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return nil, errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return networks, nil
+}
+
+func SearchNetworks(tx *sql.Tx, conditions map[string]string, properties map[string]interface{}) (networks []sls_common.Network, err error) {
 	if len(conditions) == 0 && len(properties) == 0 {
 		err = errors.Errorf("no properties with which to search")
 		return
@@ -416,7 +554,7 @@ func SearchNetworks(conditions map[string]string, properties map[string]interfac
 		}
 	}
 
-	rows, rowsErr := DB.Query(q, parameters...)
+	rows, rowsErr := tx.Query(q, parameters...)
 	if rowsErr != nil {
 		err = errors.Errorf("unable to query network: %s", rowsErr)
 		return
@@ -457,17 +595,30 @@ func SearchNetworks(conditions map[string]string, properties map[string]interfac
 	return
 }
 
-func ReplaceAllNetworks(networks []sls_common.Network) (err error) {
-	trans, beginErr := DB.Begin()
+func ReplaceAllNetworksContext(ctx context.Context, networks []sls_common.Network) error {
+	tx, beginErr := DB.BeginTx(ctx, nil)
 	if beginErr != nil {
-		err = errors.Errorf("unable to begin transaction: %s", beginErr)
-		return
+		return errors.Errorf("unable to begin transaction: %s", beginErr)
 	}
 
-	version, err := IncrementVersion(trans, "replaced all networks")
+	err := ReplaceAllNetworks(tx, networks)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return errors.Errorf("unable to commit transaction: %s", commitErr)
+	}
+
+	return nil
+}
+
+func ReplaceAllNetworks(tx *sql.Tx, networks []sls_common.Network) (err error) {
+	version, err := IncrementVersion(tx, "replaced all networks")
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = trans.Rollback()
 		return err
 	}
 
@@ -475,19 +626,17 @@ func ReplaceAllNetworks(networks []sls_common.Network) (err error) {
 	q := "TRUNCATE " +
 		"    network "
 
-	_, transErr := trans.Exec(q)
+	_, transErr := tx.Exec(q)
 	if transErr != nil {
 		err = errors.Errorf("unable to exec transaction: %s", transErr)
-		_ = trans.Rollback()
 		return
 	}
 
 	// Now bulk load the passed in hardware into the database using a prepared statement.
-	statement, prepareErr := trans.Prepare(pq.CopyIn("network",
+	statement, prepareErr := tx.Prepare(pq.CopyIn("network",
 		"name", "full_name", "ip_ranges", "type", "last_updated_version", "extra_properties"))
 	if prepareErr != nil {
 		err = errors.Errorf("unable to prepare statement: %s", prepareErr)
-		_ = trans.Rollback()
 		return
 	}
 
@@ -502,7 +651,6 @@ func ReplaceAllNetworks(networks []sls_common.Network) (err error) {
 			version, string(jsonBytes))
 		if execErr != nil {
 			err = errors.Errorf("unable to exec statement: %s", execErr)
-			_ = trans.Rollback()
 			return
 		}
 	}
@@ -510,21 +658,12 @@ func ReplaceAllNetworks(networks []sls_common.Network) (err error) {
 	_, statementErr := statement.Exec()
 	if statementErr != nil {
 		err = errors.Errorf("unable to exec statement: %s", statementErr)
-		_ = trans.Rollback()
 		return
 	}
 
 	statementErr = statement.Close()
 	if statementErr != nil {
 		err = errors.Errorf("unable to close statement: %s", statementErr)
-		_ = trans.Rollback()
-		return
-	}
-
-	// Now finally we can commit the entire transaction. Assuming this works, we're done here.
-	commitErr := trans.Commit()
-	if commitErr != nil {
-		err = errors.Errorf("unable to commit transaction: %s", commitErr)
 		return
 	}
 

@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021, 2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 package database
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 	"testing"
@@ -44,7 +45,9 @@ func (suite *GenericHardwareTestSuite) SetupSuite() {
 }
 
 func (suite *GenericHardwareTestSuite) TestCUDGenericHardware_HappyPath() {
-	previousVersion, versionErr := GetCurrentVersion()
+	ctx := context.TODO()
+
+	previousVersion, versionErr := GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 
 	genericHardware := sls_common.GenericHardware{
@@ -58,13 +61,13 @@ func (suite *GenericHardwareTestSuite) TestCUDGenericHardware_HappyPath() {
 		},
 	}
 
-	err := InsertGenericHardware(genericHardware)
+	err := InsertGenericHardwareContext(ctx, genericHardware)
 	suite.NoError(err)
 
-	err = InsertGenericHardware(genericHardware)
+	err = InsertGenericHardwareContext(ctx, genericHardware)
 	suite.EqualError(err, AlreadySuch.Error())
 
-	newVersion, versionErr := GetCurrentVersion()
+	newVersion, versionErr := GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 	suite.Greater(newVersion, previousVersion)
 	previousVersion = newVersion
@@ -75,24 +78,26 @@ func (suite *GenericHardwareTestSuite) TestCUDGenericHardware_HappyPath() {
 	genericHardware.Class = sls_common.ClassMountain
 	genericHardware.ExtraPropertiesRaw = sls_common.ComptypeRtrMod{PowerConnector: "foo"}
 
-	err = UpdateGenericHardware(genericHardware)
+	err = UpdateGenericHardwareContext(ctx, genericHardware)
 	suite.NoError(err)
 
-	newVersion, versionErr = GetCurrentVersion()
+	newVersion, versionErr = GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 	suite.Greater(newVersion, previousVersion)
 	previousVersion = newVersion
 
-	err = DeleteGenericHardware(genericHardware)
+	err = DeleteGenericHardwareContext(ctx, genericHardware)
 	suite.NoError(err)
 
-	newVersion, versionErr = GetCurrentVersion()
+	newVersion, versionErr = GetCurrentVersion(ctx)
 	suite.NoError(versionErr)
 	suite.Greater(newVersion, previousVersion)
 	previousVersion = newVersion
 }
 
 func (suite *GenericHardwareTestSuite) TestRGetGenericHardware_HappyPath() {
+	ctx := context.TODO()
+
 	// Insert some children
 	for i := 0; i < 5; i++ {
 		genericHardware := sls_common.GenericHardware{
@@ -106,7 +111,7 @@ func (suite *GenericHardwareTestSuite) TestRGetGenericHardware_HappyPath() {
 			},
 		}
 
-		_ = InsertGenericHardware(genericHardware)
+		_ = InsertGenericHardwareContext(ctx, genericHardware)
 	}
 
 	// Now put a parent in there
@@ -121,10 +126,10 @@ func (suite *GenericHardwareTestSuite) TestRGetGenericHardware_HappyPath() {
 		},
 	}
 
-	_ = InsertGenericHardware(genericHardware)
+	_ = InsertGenericHardwareContext(ctx, genericHardware)
 
 	// Now get the data back out.
-	returnedHardware, err := GetGenericHardwareFromXname(genericHardware.Xname)
+	returnedHardware, err := GetGenericHardwareFromXnameContext(ctx, genericHardware.Xname)
 	suite.NoError(err)
 
 	_, err = json.MarshalIndent(returnedHardware, "\t", "\t")
@@ -135,7 +140,7 @@ func (suite *GenericHardwareTestSuite) TestRGetGenericHardware_HappyPath() {
 	properties["Role"] = "Compute"
 
 	// Try a search
-	searchResults, err := GetGenericHardwareForExtraProperties(properties)
+	searchResults, err := GetGenericHardwareForExtraProperties(ctx, properties)
 	suite.NoError(err)
 	suite.GreaterOrEqual(len(searchResults), 1)
 
@@ -143,7 +148,8 @@ func (suite *GenericHardwareTestSuite) TestRGetGenericHardware_HappyPath() {
 	properties = make(map[string]interface{})
 	properties["Networks"] = []string{"NMN"}
 
-	searchResults, err = SearchGenericHardware(
+	searchResults, err = SearchGenericHardwareContext(
+		ctx,
 		map[string]string{
 			"Xname": "x0c0s1b0n0",
 		},
@@ -155,7 +161,7 @@ func (suite *GenericHardwareTestSuite) TestRGetGenericHardware_HappyPath() {
 	suite.NoError(err)
 
 	// Try getting everything
-	allGenericHardware, err := GetAllGenericHardware()
+	allGenericHardware, err := GetAllGenericHardwareContext(ctx)
 	suite.NoError(err)
 	suite.GreaterOrEqual(len(allGenericHardware), 1)
 

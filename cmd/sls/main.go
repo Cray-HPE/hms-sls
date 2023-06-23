@@ -31,11 +31,14 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/namsral/flag"
 
 	"github.com/Cray-HPE/hms-sls/v2/internal/database"
 	"github.com/gorilla/mux"
+	cache "github.com/victorspringer/http-cache"
+	"github.com/victorspringer/http-cache/adapter/memory"
 )
 
 type Route struct {
@@ -62,6 +65,9 @@ const (
 )
 
 var httpAddr string
+var cacheLayerEnable bool
+var cacheTTLSeconds int
+var cacheCapacity int
 var debugLevel int
 
 var vaultKeypath string
@@ -226,6 +232,12 @@ func main() {
 
 	flag.StringVar(&httpAddr, "http_listen_addr", ":8376",
 		"The address (in [address]:port) on which to expose SLS's HTTP interface")
+	flag.BoolVar(&cacheLayerEnable, "cache_layer_enable", false,
+		"Enable the HTTP caching middleware")
+	flag.IntVar(&cacheTTLSeconds, "cache_ttl_seconds", 15,
+		"Set the caches Time To Live (TTL) in seconds")
+	flag.IntVar(&cacheCapacity, "cache_capacity", 1000, // TODO tune
+		"Set the size of the cache")
 	flag.IntVar(&debugLevel, "debug", 0, "Debug level")
 	flag.Parse()
 	envVars()
@@ -237,6 +249,45 @@ func main() {
 	srv := &http.Server{
 		Addr:    httpAddr,
 		Handler: router,
+	}
+
+	if cacheLayerEnable {
+		log.Printf("INFO: Enabling cache layer with capacity %d and TTL of %d seconds\n", cacheCapacity, cacheTTLSeconds)
+
+		// Setup Caching
+		memcached, err := memory.NewAdapter(
+			memory.AdapterWithAlgorithm(memory.LRU),
+			memory.AdapterWithCapacity(cacheCapacity),
+		)
+		if err != nil {
+			log.Fatalf("ERROR: Failed to setup memory cache adapter. Error: %s\n", err.Error())
+		}
+
+		cacheClient, err := cache.NewClient(
+			cache.ClientWithMethods([]string{http.MethodGet}),
+			cache.ClientWithAdapter(memcached),
+			cache.ClientWithTTL(time.Second*time.Duration(cacheTTLSeconds)),
+			// cache.ClientWithRefreshKey("opn"), // TODO
+		)
+		if err != nil {
+			log.Fatalf("ERROR: Failed to setup cache client. Error: %s\n", err.Error())
+		}
+
+		// Apply caching middleware, but exclude it from liveness readiness
+		router.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == API_READINESS || r.URL.Path == API_LIVENESS {
+					// For readiness and liveness bypass the caching layer, as this would obscure and delay responses that k8s
+					// needs for livesness and readiness probes
+					next.ServeHTTP(w, r)
+				} else {
+					// Continue onto the caching middle ware
+					cacheClient.Middleware(next).ServeHTTP(w, r)
+				}
+			})
+		})
+	} else {
+		log.Println("INFO: Caching layer is disabled")
 	}
 
 	c := make(chan os.Signal, 1)

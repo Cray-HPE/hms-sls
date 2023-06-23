@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 package datastore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -91,65 +92,51 @@ func verifyIPRanges(ipRanges []string) (err error) {
 }
 
 // GetNetwork returns the network object matching the given name.
-func GetNetwork(name string) (sls_common.Network, error) {
-	return database.GetNetworkForName(name)
+func GetNetwork(ctx context.Context, name string) (sls_common.Network, error) {
+	return database.GetNetworkForNameContext(ctx, name)
 }
 
 // InsertNetwork adds a given network into the database assuming it passes validation.
-func InsertNetwork(network sls_common.Network) (validationErr error, dbErr error) {
+func InsertNetwork(ctx context.Context, network sls_common.Network) (validationErr error, dbErr error) {
 	validationErr = VerifyNetwork(network)
 	if validationErr != nil {
 		return
 	}
 
-	dbErr = database.InsertNetwork(network)
+	dbErr = database.InsertNetworkContext(ctx, network)
 
 	return
 }
 
 // UpdateNetwork updates all of the fields for a given network in the DB *except* for the name which is read-only.
 // Therefore, this function does no validation on network name.
-func UpdateNetwork(network sls_common.Network) error {
-	return database.UpdateNetwork(network)
+func UpdateNetwork(ctx context.Context, network sls_common.Network) error {
+	return database.UpdateNetworkContext(ctx, network)
 }
 
 // Insert or update a network
-func SetNetwork(network sls_common.Network) (verificationErr error, dbErr error) {
+func SetNetwork(ctx context.Context, network sls_common.Network) (verificationErr error, dbErr error) {
 	verificationErr = VerifyNetwork(network)
 	if verificationErr != nil {
 		return
 	}
-	_, nwerr := GetNetwork(network.Name)
-	if (nwerr != nil) && (nwerr != database.NoSuch) {
-		dbErr = nwerr
-		return
-	}
 
-	if (nwerr != nil) && (nwerr == database.NoSuch) {
-		dbErr = database.InsertNetwork(network)
-		if dbErr != nil {
-			return
-		}
-	} else {
-		dbErr = database.UpdateNetwork(network)
-		if dbErr != nil {
-			return
-		}
-	}
+	dbErr = database.SetNetworkContext(ctx, network)
+
 	return
 }
 
 // DeleteNetwork removes a network from the DB.
-func DeleteNetwork(networkName string) error {
-	return database.DeleteNetwork(networkName)
+func DeleteNetwork(ctx context.Context, networkName string) error {
+	return database.DeleteNetworkContext(ctx, networkName)
 }
 
 // GetAllNetworks returns all the network objects in the DB.
-func GetAllNetworks() ([]sls_common.Network, error) {
-	return database.GetAllNetworks()
+func GetAllNetworks(ctx context.Context) ([]sls_common.Network, error) {
+	return database.GetAllNetworksContext(ctx)
 }
 
-func SearchNetworks(network sls_common.Network) (networks []sls_common.Network, err error) {
+func SearchNetworks(ctx context.Context, network sls_common.Network) (networks []sls_common.Network, err error) {
 	conditions := make(map[string]string)
 
 	if network.Name != "" {
@@ -181,11 +168,11 @@ func SearchNetworks(network sls_common.Network) (networks []sls_common.Network, 
 		return
 	}
 
-	networks, err = database.SearchNetworks(conditions, propertiesMap)
+	networks, err = database.SearchNetworksContext(ctx, conditions, propertiesMap)
 
 	return
 }
 
-func ReplaceAllNetworks(networks []sls_common.Network) error {
-	return database.ReplaceAllNetworks(networks)
+func ReplaceAllNetworks(ctx context.Context, networks []sls_common.Network) error {
+	return database.ReplaceAllNetworksContext(ctx, networks)
 }

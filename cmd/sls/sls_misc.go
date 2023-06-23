@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -57,14 +58,14 @@ const (
 
 // Fetch the version info from the DB.
 
-func getVersionFromDB() (version sls_common.SLSVersion, err error) {
-	currentVersion, err := database.GetCurrentVersion()
+func getVersionFromDB(ctx context.Context) (version sls_common.SLSVersion, err error) {
+	currentVersion, err := database.GetCurrentVersion(ctx)
 	if err != nil {
 		log.Println("ERROR: Can't get current version:", err)
 		return
 	}
 
-	lastModified, err := database.GetLastModified()
+	lastModified, err := database.GetLastModified(ctx)
 	if err != nil {
 		log.Println("ERROR: Can't get last modified:", err)
 		return
@@ -80,8 +81,8 @@ func getVersionFromDB() (version sls_common.SLSVersion, err error) {
 
 // Check if the database is ready.
 
-func dbReady() bool {
-	_, serr := getVersionFromDB()
+func dbReady(ctx context.Context) bool {
+	_, serr := getVersionFromDB(ctx)
 	if serr != nil {
 		log.Println("INFO: Readiness check failed, can't get version info from DB:", serr)
 		return false
@@ -106,7 +107,7 @@ func doVersionGet(w http.ResponseWriter, r *http.Request) {
 
 	// Grab the version info from the DB
 
-	slsVersion, slserr := getVersionFromDB()
+	slsVersion, slserr := getVersionFromDB(r.Context())
 	if slserr != nil {
 		log.Println("ERROR: Can't get version info from DB:", slserr)
 		pdet := base.NewProblemDetails("about: blank",
@@ -170,7 +171,7 @@ func doHealthGet(w http.ResponseWriter, r *http.Request) {
 		if dberr != nil {
 			log.Printf("INFO: DB ping error:%s", dberr.Error())
 			stats.DBConnection = fmt.Sprintf("Ping error:%s", dberr.Error())
-		} else if dbReady() == false {
+		} else if dbReady(r.Context()) == false {
 			// active query from something in database
 			log.Printf("INFO: DB not Ready")
 			stats.DBConnection = "Not Ready"
@@ -233,7 +234,7 @@ func doReadinessGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ready := true
-	if dbReady() == false {
+	if dbReady(r.Context()) == false {
 		log.Printf("INFO: readiness check fails, db not ready")
 		ready = false
 	}
@@ -263,7 +264,7 @@ func doDumpState(w http.ResponseWriter, r *http.Request) {
 		Networks: make(map[string]sls_common.Network),
 	}
 
-	allHardware, err := datastore.GetAllHardware()
+	allHardware, err := datastore.GetAllHardware(r.Context())
 	if err != nil {
 		log.Println("ERROR: unable to get hardware: ", err)
 		pdet := base.NewProblemDetails("about: blank",
@@ -278,7 +279,7 @@ func doDumpState(w http.ResponseWriter, r *http.Request) {
 		ret.Hardware[hardware.Xname] = hardware
 	}
 
-	allNetworks, err := datastore.GetAllNetworks()
+	allNetworks, err := datastore.GetAllNetworks(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -442,7 +443,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 		hardware = append(hardware, obj)
 	}
 
-	hardwareErr := datastore.ReplaceGenericHardware(hardware)
+	hardwareErr := datastore.ReplaceGenericHardware(r.Context(), hardware)
 	if hardwareErr != nil {
 		log.Println("ERROR: unable to replace hardware:", hardwareErr)
 		pdet := base.NewProblemDetails("about: blank",
@@ -457,7 +458,7 @@ func doLoadState(w http.ResponseWriter, r *http.Request) {
 		networks = append(networks, obj)
 	}
 
-	networksErr := datastore.ReplaceAllNetworks(networks)
+	networksErr := datastore.ReplaceAllNetworks(r.Context(), networks)
 	if networksErr != nil {
 		log.Println("ERROR: unable to replace networks:", networksErr)
 		pdet := base.NewProblemDetails("about: blank",

@@ -23,6 +23,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -41,6 +42,8 @@ func (suite *VersionHistoryTestSuite) SetupSuite() {
 }
 
 func (suite *VersionHistoryTestSuite) TestVersion_HappyPath() {
+	ctx := context.TODO()
+
 	trans, beginErr := DB.Begin()
 	if beginErr != nil {
 		fmt.Printf("TestVersion_HappyPath: unable to begin transaction: %s", beginErr)
@@ -57,14 +60,14 @@ func (suite *VersionHistoryTestSuite) TestVersion_HappyPath() {
 		return
 	}
 
-	version, err := GetCurrentVersion()
+	version, err := GetCurrentVersion(ctx)
 	suite.NoError(err)
 
 	suite.Greater(version, 0)
 
 	fmt.Printf("\tGot version %d.\n", version)
 
-	lastModified, err := GetLastModified()
+	lastModified, err := GetLastModified(ctx)
 	suite.NoError(err)
 
 	fmt.Printf("\tGot last modified %s.\n", lastModified)

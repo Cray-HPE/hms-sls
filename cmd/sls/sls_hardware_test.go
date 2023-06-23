@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -1089,6 +1090,8 @@ func logTestContext(t *testing.T, description string, data testData) {
 }
 
 func Test_doHardwarePost(t *testing.T) {
+	ctx := context.TODO()
+
 	var jdata, jexp sls_common.GenericHardware
 	var tpl *testData
 	var targ, child string
@@ -1101,7 +1104,7 @@ func Test_doHardwarePost(t *testing.T) {
 	dbInit()
 
 	// Clear the database.
-	database.DeleteAllGenericHardware()
+	database.DeleteAllGenericHardwareContext(ctx)
 
 	for ii, pl := range payloads {
 		t.Logf("POST test %d...\n", ii)

@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -280,6 +281,8 @@ func TestDoVersionGet(t *testing.T) {
 }
 
 func TestDoLoadstateWithKey(t *testing.T) {
+	ctx := context.TODO()
+
 	kerr := setupInit(t)
 	if kerr != nil {
 		t.Error("Error with test setup:", kerr)
@@ -287,9 +290,9 @@ func TestDoLoadstateWithKey(t *testing.T) {
 
 	// Preload the database with some data so after we make the request we can make sure it's gone
 	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, xnametypes.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
-	datastore.SetXname(sampleObj.Xname, sampleObj)
+	datastore.SetXname(ctx, sampleObj)
 	sampleNw := sls_common.Network{"DUMMY", "Sample dummy network", []string{}, sls_common.NetworkTypeEthernet, 0, "2014-07-16 20:55:46 +0000 UTC", nil}
-	datastore.SetNetwork(sampleNw)
+	datastore.SetNetwork(ctx, sampleNw)
 
 	// The private key support was removed, but the key can still be passed in. Now it is just ignored.
 	// Build the multipart form files necessary for the public key and dump.
@@ -444,7 +447,7 @@ OrdRstweaH84Wxjriy/PGWbxUxgPRu0=
 	}
 
 	// Now validate that the initial data isn't in there...
-	r, err := datastore.GetXname("x0c0")
+	r, err := datastore.GetXname(ctx, "x0c0")
 	if err != nil {
 		t.Errorf("Error retrieving old data: %s", err)
 	}
@@ -453,7 +456,7 @@ OrdRstweaH84Wxjriy/PGWbxUxgPRu0=
 	}
 
 	// And that the new data went in
-	currentXnames, err := datastore.GetAllXnames()
+	currentXnames, err := datastore.GetAllXnames(ctx)
 	if err != nil {
 		t.Errorf("Error retrieving database contents: %s", err)
 	}
@@ -467,7 +470,7 @@ OrdRstweaH84Wxjriy/PGWbxUxgPRu0=
 		}
 	}
 
-	currentNetworks, err := datastore.GetAllNetworks()
+	currentNetworks, err := datastore.GetAllNetworks(ctx)
 	if err != nil {
 		t.Errorf("Error retrieving database network contents: %s", err)
 	}
@@ -477,6 +480,8 @@ OrdRstweaH84Wxjriy/PGWbxUxgPRu0=
 }
 
 func TestDoLoadstateWithoutKey(t *testing.T) {
+	ctx := context.TODO()
+
 	kerr := setupInit(t)
 	if kerr != nil {
 		t.Error("Error with test setup:", kerr)
@@ -484,9 +489,9 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 
 	// Preload the database with some data so after we make the request we can make sure it's gone
 	sampleObj := sls_common.GenericHardware{"x0", []string{}, "x0c0", sls_common.Chassis, sls_common.ClassRiver, xnametypes.Chassis, 0, "2014-07-16 20:55:46 +0000 UTC", nil, nil}
-	datastore.SetXname(sampleObj.Xname, sampleObj)
+	datastore.SetXname(ctx, sampleObj)
 	sampleNw := sls_common.Network{"DUMMY", "Sample dummy network", []string{}, sls_common.NetworkTypeEthernet, 0, "2014-07-16 20:55:46 +0000 UTC", nil}
-	datastore.SetNetwork(sampleNw)
+	datastore.SetNetwork(ctx, sampleNw)
 
 	const slsDump = `
 {
@@ -574,7 +579,7 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 	}
 
 	// Now validate that the initial data isn't in there...
-	r, err := datastore.GetXname("x0c0")
+	r, err := datastore.GetXname(ctx, "x0c0")
 	if err != nil {
 		t.Errorf("Error retrieving old data: %s", err)
 	}
@@ -583,7 +588,7 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 	}
 
 	// And that the new data went in
-	currentXnames, err := datastore.GetAllXnames()
+	currentXnames, err := datastore.GetAllXnames(ctx)
 	if err != nil {
 		t.Errorf("Error retrieving database contents: %s", err)
 	}
@@ -597,7 +602,7 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 		}
 	}
 
-	currentNetworks, err := datastore.GetAllNetworks()
+	currentNetworks, err := datastore.GetAllNetworks(ctx)
 	if err != nil {
 		t.Errorf("Error retrieving database network contents: %s", err)
 	}
@@ -607,6 +612,8 @@ func TestDoLoadstateWithoutKey(t *testing.T) {
 }
 
 func TestDoLoadstateValidate(t *testing.T) {
+	ctx := context.TODO()
+
 	kerr := setupInit(t)
 	if kerr != nil {
 		t.Error("Error with test setup:", kerr)
@@ -676,7 +683,7 @@ func TestDoLoadstateValidate(t *testing.T) {
 	}
 
 	// Validate hardware
-	currentXnames, err := datastore.GetAllXnames()
+	currentXnames, err := datastore.GetAllXnames(ctx)
 	if err != nil {
 		t.Errorf("Error retrieving database contents: %s", err)
 	}
@@ -693,7 +700,7 @@ func TestDoLoadstateValidate(t *testing.T) {
 	if !foundXname {
 		t.Fatalf("Failed to find Xname %s in xnames: %v", expectedXname, currentXnames)
 	}
-	hardware, err := datastore.GetXname(expectedXname)
+	hardware, err := datastore.GetXname(ctx, expectedXname)
 	if err != nil {
 		t.Errorf("Error getting hardware for xname %s. error: %v", expectedXname, err)
 	}
@@ -708,7 +715,7 @@ func TestDoLoadstateValidate(t *testing.T) {
 	}
 
 	// Validate networks
-	currentNetworks, err := datastore.GetAllNetworks()
+	currentNetworks, err := datastore.GetAllNetworks(ctx)
 	if err != nil {
 		t.Errorf("Error retrieving database network contents: %s", err)
 	}
@@ -892,12 +899,14 @@ func TestDoLoadstateInvalid(t *testing.T) {
 }
 
 func TestDoDumpstate(t *testing.T) {
+	ctx := context.TODO()
+
 	kerr := setupInit(t)
 	if kerr != nil {
 		t.Error("Error with test setup:", kerr)
 	}
 
-	err := database.DeleteAllGenericHardware()
+	err := database.DeleteAllGenericHardwareContext(ctx)
 	if err != nil {
 		t.Errorf("Error deleting all hardware: %s", err)
 	}
@@ -920,13 +929,13 @@ func TestDoDumpstate(t *testing.T) {
 
 	for _, obj := range inputObjs {
 		t.Logf("Inserting test data for %s: %v", obj.Xname, obj)
-		err, _ = datastore.SetXname(obj.Xname, obj)
+		err, _ = datastore.SetXname(ctx, obj)
 		if err != nil {
 			t.Fatalf("Failed ot insert %s: %s", obj.Xname, err)
 		}
 	}
 
-	err = database.DeleteAllNetworks()
+	err = database.DeleteAllNetworksContext(ctx)
 	if err != nil {
 		t.Fatalf("Error deleting all networks: %s", err)
 	}
@@ -940,7 +949,7 @@ func TestDoDumpstate(t *testing.T) {
 		"2014-07-16 20:55:46 +0000 UTC",
 		nil,
 	}
-	validationErr, err := datastore.SetNetwork(sampleNw)
+	validationErr, err := datastore.SetNetwork(ctx, sampleNw)
 	if validationErr != nil {
 		t.Fatalf("Failed to set network due to validation error: %s", validationErr)
 	}

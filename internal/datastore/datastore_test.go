@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 package datastore
 
 import (
+	"context"
 	"log"
 	"reflect"
 	"testing"
@@ -47,22 +48,6 @@ func (suite *DatastoreTestSuite) SetupSuite() {
 	err := database.NewDatabase()
 	if err != nil {
 		suite.FailNowf("Unable create database", "err: %s", err)
-	}
-}
-
-func (suite *DatastoreTestSuite) TestMakeKeyXname_noPrefix() {
-	got := makeKeyXname("x0c0")
-	exp := xnameKeyPrefix + "x0c0"
-	if got != exp {
-		suite.FailNowf("Got did not equal expected", "Got: %s, expected: %s", got, exp)
-	}
-}
-
-func (suite *DatastoreTestSuite) TestMakeKeyXname_Prefix() {
-	got := makeKeyXname(xnameKeyPrefix + "x0c0")
-	exp := xnameKeyPrefix + "x0c0"
-	if got != exp {
-		suite.FailNowf("Got did not equal expected", "Got: %s, expected: %s", got, exp)
 	}
 }
 
@@ -306,6 +291,8 @@ func (suite *DatastoreTestSuite) TestComptypeCompmodPowerConnector_GetTypeString
 }
 
 func (suite *DatastoreTestSuite) TestGetXname_okay() {
+	ctx := context.TODO()
+
 	robj := sls_common.GenericHardware{
 		Parent:             "x0",
 		Children:           []string{},
@@ -316,12 +303,12 @@ func (suite *DatastoreTestSuite) TestGetXname_okay() {
 		ExtraPropertiesRaw: nil,
 	}
 
-	err, _ := SetXname(robj.Xname, robj)
+	err, _ := SetXname(ctx, robj)
 	if err != nil {
 		suite.FailNowf("Unable to set xname", "err: %s", err)
 	}
 
-	res, err := GetXname("x0c0")
+	res, err := GetXname(ctx, "x0c0")
 	if err != nil {
 		suite.FailNowf("Unexpected error fetching data", "err: %s", err)
 	}
@@ -339,10 +326,12 @@ func (suite *DatastoreTestSuite) TestGetXname_okay() {
 }
 
 func (suite *DatastoreTestSuite) TestSetXname_okay() {
+	ctx := context.TODO()
+
 	robj := sls_common.GenericHardware{
 		Parent:             "x0",
 		Children:           []string{},
-		Xname:              "x0c01",
+		Xname:              "x000c0001",
 		Type:               sls_common.Chassis,
 		Class:              sls_common.ClassMountain,
 		TypeString:         xnametypes.Chassis,
@@ -354,12 +343,12 @@ func (suite *DatastoreTestSuite) TestSetXname_okay() {
 		suite.FailNowf("Unexpected error configuring storage", "err: %s", err)
 	}
 
-	err, _ = SetXname("x000c0001", robj)
+	err, _ = SetXname(ctx, robj)
 	if err != nil {
 		suite.FailNowf("Unexpected error setting object", "err: %s", err)
 	}
 
-	res, err := GetXname("x0c01")
+	res, err := GetXname(ctx, "x0c01")
 	if err != nil {
 		suite.FailNowf("Unexpected error fetching data", "err: %s", err)
 	}
@@ -377,10 +366,12 @@ func (suite *DatastoreTestSuite) TestSetXname_okay() {
 }
 
 func (suite *DatastoreTestSuite) Test_DeleteXname() {
+	ctx := context.TODO()
+
 	robj := sls_common.GenericHardware{
 		Parent:     "x0c01",
 		Children:   []string{},
-		Xname:      "x0c1w02",
+		Xname:      "x000c1w002",
 		Type:       sls_common.MgmtSwitch,
 		Class:      sls_common.ClassRiver,
 		TypeString: xnametypes.MgmtSwitch,
@@ -397,7 +388,7 @@ func (suite *DatastoreTestSuite) Test_DeleteXname() {
 		suite.FailNowf("Unexpected error configuring storage", "err: %s", err)
 	}
 
-	err, created := SetXname("x000c1w002", robj)
+	err, created := SetXname(ctx, robj)
 	if err != nil {
 		suite.FailNowf("Unexpected error setting object", "err: %s", err)
 	}
@@ -405,17 +396,17 @@ func (suite *DatastoreTestSuite) Test_DeleteXname() {
 		suite.FailNow("Expected x000c1w002 to be created instead of updated")
 	}
 
-	_, err = GetXname("x0c1w2")
+	_, err = GetXname(ctx, "x0c1w2")
 	if err != nil {
 		suite.FailNowf("Unexpected error checking data entry went OK", "err: %s", err)
 	}
 
-	err = DeleteXname("x0c01w002")
+	err = DeleteXname(ctx, "x0c01w002")
 	if err != nil {
 		suite.FailNowf("Unexpected error deleting data entry", "err: %s", err)
 	}
 
-	res, err := GetXname("x0c1w2")
+	res, err := GetXname(ctx, "x0c1w2")
 	if err != nil {
 		suite.FailNowf("Unexpected error while validating deletion", "err: %s", err)
 	}
@@ -426,6 +417,8 @@ func (suite *DatastoreTestSuite) Test_DeleteXname() {
 }
 
 func (suite *DatastoreTestSuite) Test_GetNetwork() {
+	ctx := context.TODO()
+
 	nw := sls_common.Network{
 		Name:     "HSN",
 		FullName: "High Speed Network",
@@ -436,12 +429,12 @@ func (suite *DatastoreTestSuite) Test_GetNetwork() {
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	validationErr, err := SetNetwork(nw)
+	validationErr, err := SetNetwork(ctx, nw)
 	suite.NoError(validationErr, "Invalid network")
 	suite.NoError(err, "Failed to store Network")
 
 	// ok, now get it back...
-	res, err := GetNetwork("HSN")
+	res, err := GetNetwork(ctx, "HSN")
 	suite.NoError(err, "Error retrieving object")
 	suite.NotEmpty(res)
 
@@ -452,14 +445,18 @@ func (suite *DatastoreTestSuite) Test_GetNetwork() {
 }
 
 func (suite *DatastoreTestSuite) Test_GetNetwork_NotFound() {
+	ctx := context.TODO()
+
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	_, err = GetNetwork("foo")
+	_, err = GetNetwork(ctx, "foo")
 	suite.Equal(database.NoSuch, err, "Unexpected error")
 }
 
 func (suite *DatastoreTestSuite) Test_SetNetwork() {
+	ctx := context.TODO()
+
 	nw := sls_common.Network{
 		Name:     "HSN",
 		FullName: "High Speed Network",
@@ -470,21 +467,23 @@ func (suite *DatastoreTestSuite) Test_SetNetwork() {
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	validationErr, err := SetNetwork(nw)
+	validationErr, err := SetNetwork(ctx, nw)
 	suite.NoError(validationErr, "Invalid network")
 	suite.NoError(err, "Failed to store Network")
 
-	res, err := GetNetwork(nw.Name)
+	res, err := GetNetwork(ctx, nw.Name)
 	suite.NoError(err, "Error retrieving object")
 	suite.NotEmpty(res)
 
-	// Zero out the Last modifed fields, as those always change
+	// Zero out the Last modified fields, as those always change
 	res.LastUpdated = 0
 	res.LastUpdatedTime = ""
 	suite.Equal(nw, res, "Returned object is not equal to input")
 }
 
 func (suite *DatastoreTestSuite) Test_SetNetworkValidationError() {
+	ctx := context.TODO()
+
 	nw := sls_common.Network{
 		Name:     "HSNValidationError",
 		FullName: "High Speed Network",
@@ -495,17 +494,19 @@ func (suite *DatastoreTestSuite) Test_SetNetworkValidationError() {
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	validationErr, err := SetNetwork(nw)
+	validationErr, err := SetNetwork(ctx, nw)
 	suite.NoError(err, "Unexpected DB error")
 	if validationErr == nil {
 		suite.FailNow("Expected validation error for " + nw.IPRanges[1])
 	}
 
-	_, err = GetNetwork(nw.Name)
+	_, err = GetNetwork(ctx, nw.Name)
 	suite.EqualError(err, database.NoSuch.Error(), "Expected there to be no instance of "+nw.Name)
 }
 
 func (suite *DatastoreTestSuite) Test_DeleteNetwork() {
+	ctx := context.TODO()
+
 	nw := sls_common.Network{
 		Name:     "HSN",
 		FullName: "High Speed Network",
@@ -516,17 +517,17 @@ func (suite *DatastoreTestSuite) Test_DeleteNetwork() {
 	err := ConfigureStorage("etcd", "mem:", []string{})
 	suite.NoError(err, "Unexpected error configuring storage")
 
-	validationErr, err := SetNetwork(nw)
+	validationErr, err := SetNetwork(ctx, nw)
 	suite.NoError(validationErr, "Invalid network")
 	suite.NoError(err, "Failed to store Network object")
 
-	res, err := GetNetwork(nw.Name)
+	res, err := GetNetwork(ctx, nw.Name)
 	suite.NoError(err, "Unable to fetch network (to verify present)")
 	suite.NotEmpty(res)
 
-	err = DeleteNetwork(nw.Name)
+	err = DeleteNetwork(ctx, nw.Name)
 	suite.NoError(err, "Unable to delete network")
 
-	_, err = GetNetwork(nw.Name)
+	_, err = GetNetwork(ctx, nw.Name)
 	suite.Equal(database.NoSuch, err, "Unexpected error")
 }

@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -103,7 +104,7 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the component already exists.  If so, it's an error.
 
-	cname, cerr := datastore.GetXname(jdata.Xname)
+	cname, cerr := datastore.GetXname(r.Context(), jdata.Xname)
 	if cerr != nil {
 		log.Printf("ERROR accessing DB for '%s': %v", jdata.Xname, cerr)
 		sendJsonRsp(w, http.StatusInternalServerError, "DB lookup error")
@@ -125,7 +126,7 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
 
 	// Write these into the DB
-	err, created := datastore.SetXname(hw.Xname, hw)
+	err, created := datastore.SetXname(r.Context(), hw)
 	if err != nil {
 		log.Printf("ERROR inserting component '%s' into DB: %s\n", jdata.Xname, err)
 		sendJsonRsp(w, http.StatusInternalServerError, "error inserting object into DB")
@@ -147,12 +148,13 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 //  /hardware GET API
 
 func doHardwareGet(w http.ResponseWriter, r *http.Request) {
-	hwList, err := datastore.GetAllXnameObjects()
+	hwList, err := datastore.GetAllXnameObjects(r.Context())
 	if err != nil {
 		log.Println("ERROR getting all /hardware objects from DB:", err)
 		sendJsonRsp(w, http.StatusInternalServerError, "failed hardware DB query")
 		return
 	}
+
 	ba, baerr := json.Marshal(hwList)
 	if baerr != nil {
 		log.Println("ERROR: JSON marshal of /hardware failed:", baerr)
@@ -181,7 +183,7 @@ func doHardwareObjGet(w http.ResponseWriter, r *http.Request) {
 	// Fetch the item and all of its descendants from the database.  If
 	// the item does not exist, error.
 
-	cmp, err := datastore.GetXname(xname)
+	cmp, err := datastore.GetXname(r.Context(), xname)
 	if cmp == nil {
 		log.Printf("ERROR, requested component not found in DB: '%s'\n",
 			xname)
@@ -261,7 +263,7 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 	hw.Type = sls_common.HMSTypeToHMSStringType(hw.TypeString)
 
 	// Write back to the DB
-	err, created := datastore.SetXname(hw.Xname, hw)
+	err, created := datastore.SetXname(r.Context(), hw)
 	if err != nil {
 		log.Println("ERROR updating DB:", err)
 		sendJsonRsp(w, http.StatusInternalServerError, "DB update failed")
@@ -278,9 +280,9 @@ func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
 // Recursive function used to get all components of a component
 // tree and put them into a linear slice.
 
-func getCompTree(gcomp sls_common.GenericHardware, compList *[]sls_common.GenericHardware) error {
+func getCompTree(ctx context.Context, gcomp sls_common.GenericHardware, compList *[]sls_common.GenericHardware) error {
 	for _, cxname := range gcomp.Children {
-		cmp, err := datastore.GetXname(cxname)
+		cmp, err := datastore.GetXname(ctx, cxname)
 		if cmp == nil {
 			log.Printf("WARNING: child component '%s' not found in DB.\n",
 				cxname)
@@ -289,7 +291,7 @@ func getCompTree(gcomp sls_common.GenericHardware, compList *[]sls_common.Generi
 		if err != nil {
 			return err
 		}
-		err = getCompTree(*cmp, compList)
+		err = getCompTree(ctx, *cmp, compList)
 		if err != nil {
 			return err
 		}
@@ -317,7 +319,7 @@ func doHardwareObjDelete(w http.ResponseWriter, r *http.Request) {
 	// Fetch the item and all of its descendants from the database.  If
 	// the item does not exist, error.
 
-	cmp, err := datastore.GetXname(xname)
+	cmp, err := datastore.GetXname(r.Context(), xname)
 	if err != nil {
 		log.Println("ERROR, error in DB query:", err)
 		sendJsonRsp(w, http.StatusInternalServerError, "failed to query DB")
@@ -329,7 +331,7 @@ func doHardwareObjDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = getCompTree(*cmp, &compList)
+	err = getCompTree(r.Context(), *cmp, &compList)
 	if err != nil {
 		log.Println("ERROR, error in comp tree DB query:", err)
 		sendJsonRsp(w, http.StatusInternalServerError, "failed to query DB")
@@ -341,7 +343,7 @@ func doHardwareObjDelete(w http.ResponseWriter, r *http.Request) {
 	ok := true
 	for _, component := range compList {
 		log.Printf("INFO: Deleting: '%s'\n", component.Xname)
-		err = datastore.DeleteXname(component.Xname)
+		err = datastore.DeleteXname(r.Context(), component.Xname)
 		if err != nil {
 			ok = false
 		}
@@ -424,7 +426,7 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 
 	hardware.ExtraPropertiesRaw = properties
 
-	returnedHardware, validationErr, dbErr := datastore.SearchGenericHardware(hardware)
+	returnedHardware, validationErr, dbErr := datastore.SearchGenericHardware(r.Context(), hardware)
 	if dbErr == database.NoSuch {
 		log.Println("ERROR: ", dbErr)
 		pdet := base.NewProblemDetails("about: blank",
