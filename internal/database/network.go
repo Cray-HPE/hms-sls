@@ -619,7 +619,6 @@ func ReplaceAllNetworks(tx *sql.Tx, networks []sls_common.Network) (err error) {
 	version, err := IncrementVersion(tx, "replaced all networks")
 	if err != nil {
 		err = errors.Errorf("insert to version_history failed: %s", err)
-		_ = tx.Rollback()
 		return err
 	}
 
