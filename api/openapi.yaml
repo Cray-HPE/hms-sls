@@ -973,6 +973,19 @@ components:
           type: integer
           minimum: 0
           example: "2"
+    hardware_comptype_virtual_node:
+      type: object
+      required: ["NodeType"]
+      properties:
+        NodeType:
+          type: string
+          enum: ["Management"]
+          description: "The role type assigned to this node."
+          example: "Management"
+        nid:
+          type: integer
+          minimum: 0
+          example: "2"
     hardware_comptype_nodecard:
       $ref: '#/components/schemas/hardware_ip_and_creds_optional'
     hardware_extra_properties:
@@ -988,6 +1001,7 @@ components:
         - $ref: '#/components/schemas/hardware_comptype_compmod'
         - $ref: '#/components/schemas/hardware_comptype_cab_pdu'
         - $ref: '#/components/schemas/hardware_comptype_node'
+        - $ref: '#/components/schemas/hardware_comptype_virtual_node'
         - $ref: '#/components/schemas/hardware_comptype_nodecard'
 
     slsState:

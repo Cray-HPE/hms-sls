@@ -74,6 +74,10 @@ var saneHardwareList = []sls_common.GenericHardware{
 	sls_common.NewGenericHardware("x1000c0s1b0n0", sls_common.ClassMountain, nil),
 	sls_common.NewGenericHardware("x3000c0s1b0n0", sls_common.ClassRiver, nil),
 	sls_common.NewGenericHardware("x9000c0s1b0n0", sls_common.ClassHill, nil),
+	// VirtualNode
+	sls_common.NewGenericHardware("x1000c0s1b0n0v0", sls_common.ClassMountain, nil),
+	sls_common.NewGenericHardware("x3000c0s1b0n0v0", sls_common.ClassRiver, nil),
+	sls_common.NewGenericHardware("x9000c0s1b0n0v0", sls_common.ClassHill, nil),
 	// RouterBMC
 	sls_common.NewGenericHardware("x1000c0r1b0", sls_common.ClassMountain, nil),
 	sls_common.NewGenericHardware("x3000c0r1b0", sls_common.ClassRiver, nil),

@@ -121,24 +121,25 @@ func (gh *GenericHardware) FromJson(in string) error {
 
 /*
 ComptypeCabinet represents an object of type comptype_cabinet.
-    "x3000": {
-      "Class":  "River",
-      "ExtraProperties": {
-        "Networks": {
-          "cn": {
-            "HMN": {"CIDR": "10.254.0.0/22"},
-            "NMN": {"CIDR": "10.252.0.0/22"}
-          },
-          "ncn": {
-            "HMN": {"CIDR": "10.254.0.0/22"},
-            "NMN": {"CIDR": "10.252.0.0/22"}
-          }
-        }
-      },
-      "Parent": "s0",
-      "Type":   "comptype_cabinet",
-      "Xname":  "x3000"
-    },
+
+	"x3000": {
+	  "Class":  "River",
+	  "ExtraProperties": {
+	    "Networks": {
+	      "cn": {
+	        "HMN": {"CIDR": "10.254.0.0/22"},
+	        "NMN": {"CIDR": "10.252.0.0/22"}
+	      },
+	      "ncn": {
+	        "HMN": {"CIDR": "10.254.0.0/22"},
+	        "NMN": {"CIDR": "10.252.0.0/22"}
+	      }
+	    }
+	  },
+	  "Parent": "s0",
+	  "Type":   "comptype_cabinet",
+	  "Xname":  "x3000"
+	},
 */
 type ComptypeCabinet struct {
 	Model string `json:"Model,omitempty"`
@@ -175,13 +176,14 @@ type ComptypeHSNConnector struct {
 /*
 ComptypeMgmtSwitch represents a comptype_mgmt_switch (aka: a switch on the
 management (NMN or HMN) network(s))
-				        "IP4addr":          "127.0.0.1",
-				        "Model":            "S3048T-ON",
-				        "SNMPAuthPassword": "vault://hms-creds/x3000c0w22",
-				        "SNMPAuthProtocol": "MD5",
-				        "SNMPPrivPassword": "vault://hms-creds/x3000c0w22",
-				        "SNMPPrivProtocol": "DES",
-				        "SNMPUsername":     "testuser"
+
+	"IP4addr":          "127.0.0.1",
+	"Model":            "S3048T-ON",
+	"SNMPAuthPassword": "vault://hms-creds/x3000c0w22",
+	"SNMPAuthProtocol": "MD5",
+	"SNMPPrivPassword": "vault://hms-creds/x3000c0w22",
+	"SNMPPrivProtocol": "DES",
+	"SNMPUsername":     "testuser"
 */
 type ComptypeMgmtSwitch struct {
 	IP6Addr          string `json:"IP6addr,omitempty"`
@@ -333,6 +335,16 @@ ComptypeNode is a comptype_node, representing a node on a Mountain compute
 Blade, or node on a River node blade.
 */
 type ComptypeNode struct {
+	NID     int      `json:"NID,omitempty"`
+	Role    string   `json:"Role,omitempty"`
+	SubRole string   `json:"SubRole,omitempty"`
+	Aliases []string `json:"Aliases,omitempty"`
+}
+
+/*
+ComptypeVirtualNode is a comptype_virtual_node, representing a virtual node running on a River node blade.
+*/
+type ComptypeVirtualNode struct {
 	NID     int      `json:"NID,omitempty"`
 	Role    string   `json:"Role,omitempty"`
 	SubRole string   `json:"SubRole,omitempty"`
