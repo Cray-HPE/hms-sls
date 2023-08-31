@@ -105,6 +105,7 @@ func validateType(typeObj sls_common.HMSStringType) error {
 	case sls_common.RouterModule:
 	case sls_common.ComputeModule:
 	case sls_common.Node:
+	case sls_common.VirtualNode:
 	case sls_common.NodeBMC:
 
 	/* These all have no specific properties that need validation */

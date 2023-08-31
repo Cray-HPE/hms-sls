@@ -254,6 +254,23 @@ var payloads = []testData{
 		},
 		http.StatusCreated,
 	},
+	testData{"POST",
+		hwURLBase,
+		hwURLBase + "/x0c0s1b0n1v0",
+		json.RawMessage(`{"Parent":"x0c0s1b0n1","Xname":"x0c0s1b0n1v0","Type":"comptype_virtual_node","TypeString":"VirtualNode","Class":"Mountain","ExtraProperties":{"NID":1237,"Role":"Management"}}`),
+		sls_common.GenericHardware{"x0c0s1b0n1",
+			nil,
+			"x0c0s1b0n1v0",
+			sls_common.VirtualNode,
+			"Mountain",
+			"VirtualNode",
+			0,
+			"2014-07-16 20:55:46 +0000 UTC",
+			sls_common.ComptypeVirtualNode{NID: 1237, Role: "Management"},
+			nil,
+		},
+		http.StatusCreated,
+	},
 
 	//Hierarchy stuff
 	testData{"POST",
@@ -952,6 +969,13 @@ func hwCompare(a, b sls_common.GenericHardware) error {
 					ma, mb)
 			}
 		case sls_common.Node:
+			ma := a.ExtraPropertiesRaw.(map[string]interface{})
+			mb := b.ExtraPropertiesRaw.(map[string]interface{})
+			if !reflect.DeepEqual(ma, mb) {
+				return fmt.Errorf("Miscompare of ExtraPropertiesRaw: '%v'/'%v'",
+					ma, mb)
+			}
+		case sls_common.VirtualNode:
 			ma := a.ExtraPropertiesRaw.(map[string]interface{})
 			mb := b.ExtraPropertiesRaw.(map[string]interface{})
 			if !reflect.DeepEqual(ma, mb) {
