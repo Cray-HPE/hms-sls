@@ -267,6 +267,15 @@ stages:
     response:
       status_code: 201
 
+  - name: slsAPIHardwarePOSTNewVirtualNode - Create a new entry VirtualNode with post
+    request:
+      url: "{sls_base_url}/v1/hardware"
+      method: POST
+      verify: !bool "{verify}"
+      json: {   "Xname": "x9999c7s9b8n0v420","Class": "River"}
+    response:
+      status_code: 201
+
   - name: slsAPIHardwarePUTNewVirtualNode - Create a new entry VirtualNode with put
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b8n0v42"
@@ -546,7 +555,15 @@ stages:
     response:
       status_code: 200
 
-  - name: slsAPIHardwareDELETVirtualNodeEntry - Delete a VirtualNode entry
+  - name: slsAPIHardwareDELETVirtualNodeEntry - Delete a VirtualNode entry v420
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b8n0v420"
+      method: DELETE
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+
+  - name: slsAPIHardwareDELETVirtualNodeEntry - Delete a VirtualNode entry v42
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b8n0v42"
       method: DELETE
