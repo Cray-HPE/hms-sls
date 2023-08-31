@@ -267,6 +267,15 @@ stages:
     response:
       status_code: 201
 
+  - name: slsAPIHardwarePUTNewVirtualNode - Create a new entry VirtualNode with put
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b8n0v42"
+      method: PUT
+      verify: !bool "{verify}"
+      json: { "Class": "Mountain" }
+    response:
+      status_code: 201
+
   - name: slsAPIHardwarePUTNewBadData - Attempt to put a new entry with bad data
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b8"
@@ -487,6 +496,14 @@ stages:
   - name: slsAPIHardwareDELETEntry - Delete a known good entry
     request:
       url: "{sls_base_url}/v1/hardware/x9999c7s9b9"
+      method: DELETE
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+
+  - name: slsAPIHardwareDELETVirtualNodeEntry - Delete a VirtualNode entry
+    request:
+      url: "{sls_base_url}/v1/hardware/x9999c7s9b8n0v42"
       method: DELETE
       verify: !bool "{verify}"
     response:
