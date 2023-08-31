@@ -771,8 +771,10 @@ components:
       example: "x0c0s0b0"
     hwtype:
       type: string
-      # Regenerate this pattern by running "grep "HMSType = " pkg/base/hmstypes.go | awk '{print "^" $4 "$"}' | tr -d '"' | grep -v -e INVALID -e 'All*' -e Partition | tr '\n' '|'"
-      pattern: &hwtype_pattern "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^VirtualNode$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
+      # Regenerate this pattern by running  one of these
+      # grep "HMSType = " vendor/github.com/Cray-HPE/hms-xname/xnametypes/hmstypes.go | awk '{print "^" $4 "$"}' | tr -d '"' | grep -v -e INVALID -e 'All*' -e Partition | tr '\n' '|'
+      # grep "HMSType = " pkg/base/hmstypes.go | awk '{print "^" $4 "$"}' | tr -d '"' | grep -v -e INVALID -e 'All*' -e Partition | tr '\n' '|'
+      pattern: &hwtype_pattern "^CDU$|^CDUMgmtSwitch$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^CabinetPDUPowerConnector$|^Chassis$|^ChassisBMC$|^ChassisBMCNic$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodeEnclosurePowerSupply$|^NodePowerConnector$|^Node$|^VirtualNode$|^Processor$|^StorageGroup$|^Drive$|^NodeNic$|^NodeHsnNic$|^Memory$|^NodeAccel$|^NodeAccelRiser$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTOR$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^RouterPowerConnector$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtHLSwitchEnclosure$|^MgmtHLSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
       description: &hwtype_description "The type of this piece of hardware.  This is an optional hint during upload; it will be ignored if it does not match the xname"
       example: &hwtype_example "comptype_ncard"
     hwclass:
