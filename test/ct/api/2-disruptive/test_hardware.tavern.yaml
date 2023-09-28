@@ -75,9 +75,7 @@ stages:
                   TypeString:
                     type: str
                     required: True
-                    #TODO: MgmtHLSwitch not found in this pattern from SLS documentation
-                    #pattern: "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
-                    pattern: "^CDU$|^CDUMgmtSwitch$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtHLSwitch$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
+                    pattern: "^CDU$|^CDUMgmtSwitch$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^CabinetPDUPowerConnector$|^Chassis$|^ChassisBMC$|^ChassisBMCNic$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodeEnclosurePowerSupply$|^NodePowerConnector$|^Node$|^VirtualNode$|^Processor$|^StorageGroup$|^Drive$|^NodeNic$|^NodeHsnNic$|^Memory$|^NodeAccel$|^NodeAccelRiser$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTOR$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^RouterPowerConnector$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtHLSwitchEnclosure$|^MgmtHLSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
                   LastUpdated:
                     type: int
                     required: True
@@ -429,9 +427,7 @@ stages:
               TypeString:
                 type: str
                 required: True
-                #TODO: MgmtHLSwitch not found in this pattern from SLS documentation
-                #pattern: "^CDU$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
-                pattern: "^CDU$|^CDUMgmtSwitch$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^Chassis$|^ChassisBMC$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodePowerConnector$|^Node$|^Processor$|^NodeNIC$|^NodeHsnNIC$|^Memory$|^NodeAccel$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtHLSwitch$|^MgmtSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
+                pattern: "^CDU$|^CDUMgmtSwitch$|^CabinetCDU$|^Cabinet$|^CabinetBMC$|^CabinetPDUController$|^CabinetPDU$|^CabinetPDUNic$|^CabinetPDUOutlet$|^CabinetPDUPowerConnector$|^Chassis$|^ChassisBMC$|^ChassisBMCNic$|^CMMRectifier$|^CMMFpga$|^CEC$|^ComputeModule$|^RouterModule$|^NodeBMC$|^NodeBMCNic$|^NodeEnclosure$|^NodeEnclosurePowerSupply$|^NodePowerConnector$|^Node$|^VirtualNode$|^Processor$|^StorageGroup$|^Drive$|^NodeNic$|^NodeHsnNic$|^Memory$|^NodeAccel$|^NodeAccelRiser$|^NodeFpga$|^HSNAsic$|^RouterFpga$|^RouterTOR$|^RouterTORFpga$|^RouterBMC$|^RouterBMCNic$|^RouterPowerConnector$|^HSNBoard$|^HSNLink$|^HSNConnector$|^HSNConnectorPort$|^MgmtSwitch$|^MgmtHLSwitchEnclosure$|^MgmtHLSwitch$|^MgmtSwitchConnector$|^SMSBox$|^System$"
               LastUpdated:
                 type: int
                 required: True
