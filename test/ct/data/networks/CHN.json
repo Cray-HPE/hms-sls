@@ -1,0 +1,108 @@
+{
+  "Name": "CMN",
+  "FullName": "Customer Management Network",
+  "IPRanges": [
+    "2620:0:28B0:ac::/64"
+  ],
+  "Type": "ethernet",
+  "ExtraProperties": {
+    "CIDR": "2620:0:28B0:AC::/64",
+    "MTU": 9000,
+    "MyASN": 65532,
+    "PeerASN": 65533,
+    "Subnets": [
+      {
+        "CIDR": "2620:0:28B0:ac::/66",
+        "FullName": "CMN Dynamic MetalLB",
+        "Gateway": "10.102.3.65",
+        "MetalLBPoolName": "customer-management",
+        "Name": "cmn_metallb_address_pool",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "::10.102.3.0/25",
+        "FullName": "CMN Management Network Infrastructure",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "network_hardware",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "2620:0:28B0:ab::/66",
+        "FullName": "CMN Bootstrap DHCP Subnet",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "bootstrap_dhcp",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "8:9:a:B:c:D:E:f/66",
+        "FullName": "Test 1",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "test_1",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "::ffff:255.255.255.255/66",
+        "FullName": "Test 2",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "test_2",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "1::/66",
+        "FullName": "Test 3",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "test_3",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "fe80::d:f/66",
+        "FullName": "Test 4",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "test_4",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "::d/66",
+        "FullName": "Test 5",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "test_5",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "8:9:a:B:c:D:E:f/66",
+        "FullName": "Test 6",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "test_6",
+        "VlanID": 7
+      },
+      {
+        "CIDR": "1234:abc:d:f::100.2.3.34/66",
+        "FullName": "Test 7",
+        "Gateway": "10.102.3.1",
+        "IPReservations": [
+        ],
+        "Name": "test_7",
+        "VlanID": 7
+      }
+    ],
+    "VlanRange": [
+      7
+    ]
+  }
+}
