@@ -1,12 +1,12 @@
 module github.com/Cray-HPE/hms-sls/v2
 
-go 1.19
+go 1.23
 
 require (
-	github.com/Cray-HPE/hms-base/v2 v2.0.1
-	github.com/Cray-HPE/hms-s3 v1.9.2
-	github.com/Cray-HPE/hms-xname v1.3.0
-	github.com/aws/aws-sdk-go v1.32.4
+	github.com/Cray-HPE/hms-base/v2 v2.0.2-0.20241123000201-ddca429af7b6
+	github.com/Cray-HPE/hms-s3 v1.10.2-0.20241122235738-0e794efcff72
+	github.com/Cray-HPE/hms-xname v1.3.1-0.20241123001308-d8bcaec87c61
+	github.com/aws/aws-sdk-go v1.40.14
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/gorilla/mux v1.7.4
 	github.com/hashicorp/go-retryablehttp v0.7.1
@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
-	github.com/jmespath/go-jmespath v0.3.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
