@@ -3,9 +3,9 @@ module github.com/Cray-HPE/hms-sls/v2
 go 1.23
 
 require (
-	github.com/Cray-HPE/hms-base/v2 v2.0.2-0.20241123000201-ddca429af7b6
-	github.com/Cray-HPE/hms-s3 v1.10.2-0.20241122235738-0e794efcff72
-	github.com/Cray-HPE/hms-xname v1.3.1-0.20241123001308-d8bcaec87c61
+	github.com/Cray-HPE/hms-base/v2 v2.1.0
+	github.com/Cray-HPE/hms-s3 v1.11.0
+	github.com/Cray-HPE/hms-xname v1.4.0
 	github.com/aws/aws-sdk-go v1.40.14
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/gorilla/mux v1.7.4

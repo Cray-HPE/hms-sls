@@ -22,7 +22,7 @@
 
 # Dockerfile for testing HMS s3 code.
 
-FROM artifactory.algol60.net/docker.io/library/golang:1.23.3-alpine3.20 AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.23-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \

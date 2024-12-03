@@ -24,7 +24,7 @@
 # can't be run as these are just packages in this repo.
 
 # Build base has the packages installed that we need.
-FROM artifactory.algol60.net/docker.io/library/golang:1.23.3-alpine3.20 AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.23-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
