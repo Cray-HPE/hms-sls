@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright 2019-2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright [2019-2022,2024] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 # Dockerfile for building HMS SLS.
 
 # Build base just has the packages installed we need.
-FROM artifactory.algol60.net/docker.io/library/golang:1.19-alpine AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.23-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
@@ -45,12 +45,12 @@ FROM base AS builder
 
 # Now build
 RUN set -ex \
-    && go build -v -i -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
-    && go build -v -i -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
-    && go build -v -i -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
-    && go build -v -i -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
-    && go build -v -i -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
-    && go build -v -i -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark
+    && go build -v -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
+    && go build -v -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
+    && go build -v -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
+    && go build -v -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
+    && go build -v -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
+    && go build -v -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark
 
 ### Final Stage ###
 
