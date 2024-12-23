@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2019-2022,2024] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2019-2022,2024-2025] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -43,14 +43,27 @@ COPY pkg $GOPATH/src/github.com/Cray-HPE/hms-sls/v2/pkg
 
 FROM base AS builder
 
-# Now build
-RUN set -ex \
-    && go build -v -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
-    && go build -v -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
-    && go build -v -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
-    && go build -v -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
-    && go build -v -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
-    && go build -v -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark
+# Set profiling to disabled by default
+ARG ENABLE_PPROF=true
+
+# Conditionally build with the pprof tag if profiling is enabled
+RUN if [ "$ENABLE_PPROF" = "true" ]; then \
+        set -ex \
+            && go build -v -t pprof -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
+            && go build -v -t pprof -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
+            && go build -v -t pprof -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
+            && go build -v -t pprof -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
+            && go build -v -t pprof -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
+            && go build -v -t pprof -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark; \
+    else \
+        set -ex \
+            && go build -v -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
+            && go build -v -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
+            && go build -v -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
+            && go build -v -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
+            && go build -v -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
+            && go build -v -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark; \
+    fi
 
 ### Final Stage ###
 
