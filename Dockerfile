@@ -49,12 +49,12 @@ ARG ENABLE_PPROF=true
 # Conditionally build with the pprof tag if profiling is enabled
 RUN if [ "$ENABLE_PPROF" = "true" ]; then \
         set -ex \
-            && go build -v -t pprof -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
-            && go build -v -t pprof -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
-            && go build -v -t pprof -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
-            && go build -v -t pprof -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
-            && go build -v -t pprof -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
-            && go build -v -t pprof -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark; \
+            && go build -v -tags pprof -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
+            && go build -v -tags pprof -o sls-init github.com/Cray-HPE/hms-sls/v2/cmd/sls-init \
+            && go build -v -tags pprof -o sls-loader github.com/Cray-HPE/hms-sls/v2/cmd/sls-loader \
+            && go build -v -tags pprof -o sls-migrator github.com/Cray-HPE/hms-sls/v2/cmd/sls-migrator \
+            && go build -v -tags pprof -o sls-s3-downloader github.com/Cray-HPE/hms-sls/v2/cmd/sls-s3-downloader \
+            && go build -v -tags pprof -o sls-benchmark github.com/Cray-HPE/hms-sls/v2/cmd/sls-benchmark; \
     else \
         set -ex \
             && go build -v -o sls github.com/Cray-HPE/hms-sls/v2/cmd/sls \
