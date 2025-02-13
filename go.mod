@@ -8,7 +8,7 @@ require (
 	github.com/Cray-HPE/hms-xname v1.4.0
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/golang-migrate/migrate/v4 v4.18.2
-	github.com/gorilla/mux v1.7.4
+	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/lib/pq v1.10.9
 	github.com/namsral/flag v1.7.4-pre
