@@ -14,7 +14,7 @@ require (
 	github.com/namsral/flag v1.7.4-pre
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0
-	github.com/victorspringer/http-cache v0.0.0-20221205073845-df6d061f29cb
+	github.com/victorspringer/http-cache v0.0.0-20240523143319-7d9f48f8ab91
 	go.uber.org/zap v1.15.0
 )
 

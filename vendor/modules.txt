@@ -123,7 +123,7 @@ github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
-# github.com/victorspringer/http-cache v0.0.0-20221205073845-df6d061f29cb
+# github.com/victorspringer/http-cache v0.0.0-20240523143319-7d9f48f8ab91
 ## explicit; go 1.18
 github.com/victorspringer/http-cache
 github.com/victorspringer/http-cache/adapter/memory

@@ -30,9 +30,8 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
+	"io"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"sort"
 	"strconv"
@@ -62,10 +61,11 @@ type Response struct {
 
 // Client data structure for HTTP cache middleware.
 type Client struct {
-	adapter    Adapter
-	ttl        time.Duration
-	refreshKey string
-	methods    []string
+	adapter            Adapter
+	ttl                time.Duration
+	refreshKey         string
+	methods            []string
+	writeExpiresHeader bool
 }
 
 // ClientOption is used to set Client settings.
@@ -91,13 +91,13 @@ func (c *Client) Middleware(next http.Handler) http.Handler {
 			sortURLParams(r.URL)
 			key := generateKey(r.URL.String())
 			if r.Method == http.MethodPost && r.Body != nil {
-				body, err := ioutil.ReadAll(r.Body)
+				body, err := io.ReadAll(r.Body)
 				defer r.Body.Close()
 				if err != nil {
 					next.ServeHTTP(w, r)
 					return
 				}
-				reader := ioutil.NopCloser(bytes.NewBuffer(body))
+				reader := io.NopCloser(bytes.NewBuffer(body))
 				key = generateKeyWithBody(r.URL.String(), body)
 				r.Body = reader
 			}
@@ -123,6 +123,9 @@ func (c *Client) Middleware(next http.Handler) http.Handler {
 						for k, v := range response.Header {
 							w.Header().Set(k, strings.Join(v, ","))
 						}
+						if c.writeExpiresHeader {
+							w.Header().Set("Expires", response.Expiration.UTC().Format(http.TimeFormat))
+						}
 						w.Write(response.Value)
 						return
 					}
@@ -131,31 +134,27 @@ func (c *Client) Middleware(next http.Handler) http.Handler {
 				}
 			}
 
-			rec := httptest.NewRecorder()
-			next.ServeHTTP(rec, r)
-			result := rec.Result()
+			rw := &responseWriter{ResponseWriter: w}
+			next.ServeHTTP(rw, r)
 
-			statusCode := result.StatusCode
-			value := rec.Body.Bytes()
+			statusCode := rw.statusCode
+			value := rw.body
+			now := time.Now()
+			expires := now.Add(c.ttl)
 			if statusCode < 400 {
-				now := time.Now()
-
 				response := Response{
 					Value:      value,
-					Header:     result.Header,
-					Expiration: now.Add(c.ttl),
+					Header:     rw.Header(),
+					Expiration: expires,
 					LastAccess: now,
 					Frequency:  1,
 				}
 				c.adapter.Set(key, response.Bytes(), response.Expiration)
 			}
-			for k, v := range result.Header {
-				w.Header().Set(k, strings.Join(v, ","))
-			}
-			w.WriteHeader(statusCode)
-			w.Write(value)
+
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -284,4 +283,29 @@ func ClientWithMethods(methods []string) ClientOption {
 		c.methods = methods
 		return nil
 	}
+}
+
+// ClientWithExpiresHeader enables middleware to add an Expires header to responses.
+// Optional setting. If not set, default is false.
+func ClientWithExpiresHeader() ClientOption {
+	return func(c *Client) error {
+		c.writeExpiresHeader = true
+		return nil
+	}
+}
+
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+	body       []byte
+}
+
+func (w *responseWriter) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (w *responseWriter) Write(b []byte) (int, error) {
+	w.body = b
+	return w.ResponseWriter.Write(b)
 }

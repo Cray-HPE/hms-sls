@@ -19,7 +19,7 @@ This is an example of use with the memory adapter:
 package main
 
 import (
-    "fmt"
+    "log"
     "net/http"
     "os"
     "time"
@@ -38,8 +38,7 @@ func main() {
         memory.AdapterWithCapacity(10000000),
     )
     if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
+        log.Fatal(err)
     }
 
     cacheClient, err := cache.NewClient(
@@ -48,8 +47,7 @@ func main() {
         cache.ClientWithRefreshKey("opn"),
     )
     if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
+        log.Fatal(err)
     }
 
     handler := http.HandlerFunc(example)
@@ -124,13 +122,6 @@ http-cache memory adapter takes way less GC pause time, that means smaller GC ov
 - Develop Badger adapter
 - Develop DynamoDB adapter
 - Develop MongoDB adapter
-
-## Who's using?
-- [home24](https://www.home24.de)
-- [americanas.com](https://www.americanas.com.br)
-- [Submarino](https://www.submarino.com.br)
-- [Shoptime](https://www.shoptime.com.br)
-- If you are using this package in a production environment, please let me know! :)
 
 ## Godoc Reference
 - [http-cache](https://godoc.org/github.com/victorspringer/http-cache)
