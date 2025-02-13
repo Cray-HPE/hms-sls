@@ -69,26 +69,27 @@ github.com/davecgh/go-spew/spew
 ## explicit; go 1.17
 github.com/fsnotify/fsnotify
 github.com/fsnotify/fsnotify/internal
-# github.com/golang-migrate/migrate/v4 v4.13.0
-## explicit; go 1.13
+# github.com/golang-migrate/migrate/v4 v4.18.2
+## explicit; go 1.22.0
 github.com/golang-migrate/migrate/v4
 github.com/golang-migrate/migrate/v4/database
+github.com/golang-migrate/migrate/v4/database/multistmt
 github.com/golang-migrate/migrate/v4/database/postgres
 github.com/golang-migrate/migrate/v4/internal/url
 github.com/golang-migrate/migrate/v4/source
 github.com/golang-migrate/migrate/v4/source/file
-github.com/golang-migrate/migrate/v4/source/httpfs
+github.com/golang-migrate/migrate/v4/source/iofs
 # github.com/gorilla/mux v1.7.4
 ## explicit; go 1.12
 github.com/gorilla/mux
-# github.com/hashicorp/errwrap v1.0.0
+# github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-cleanhttp v0.5.2
 ## explicit; go 1.13
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-multierror v1.1.0
-## explicit; go 1.14
+# github.com/hashicorp/go-multierror v1.1.1
+## explicit; go 1.13
 github.com/hashicorp/go-multierror
 # github.com/hashicorp/go-retryablehttp v0.7.7
 ## explicit; go 1.19
@@ -98,8 +99,8 @@ github.com/hashicorp/go-retryablehttp
 github.com/jmespath/go-jmespath
 # github.com/kr/pretty v0.2.1
 ## explicit; go 1.12
-# github.com/lib/pq v1.3.0
-## explicit
+# github.com/lib/pq v1.10.9
+## explicit; go 1.13
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
@@ -112,8 +113,6 @@ github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/sirupsen/logrus v1.6.0
-## explicit; go 1.13
 # github.com/stretchr/objx v0.5.2
 ## explicit; go 1.20
 github.com/stretchr/objx
@@ -128,8 +127,8 @@ github.com/stretchr/testify/suite
 ## explicit; go 1.18
 github.com/victorspringer/http-cache
 github.com/victorspringer/http-cache/adapter/memory
-# go.uber.org/atomic v1.6.0
-## explicit; go 1.13
+# go.uber.org/atomic v1.11.0
+## explicit; go 1.18
 go.uber.org/atomic
 # go.uber.org/multierr v1.5.0
 ## explicit; go 1.12
@@ -146,8 +145,6 @@ go.uber.org/zap/zapcore
 ## explicit; go 1.18
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/tools v0.1.12
-## explicit; go 1.18
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
