@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2021-2022,2025] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -75,7 +75,7 @@ stages:
       method: POST
       verify: !bool "{verify}"
     response:
-      status_code: 405
+      status_code: 404
   - name: slsAPILivenessGET - Ensure that the SLS liveness can be retrieved
     request:
       url: "{sls_base_url}/v1/liveness"
@@ -89,7 +89,7 @@ stages:
       method: POST
       verify: !bool "{verify}"
     response:
-      status_code: 405
+      status_code: 404
   - name: slsAPIReadinessGET - Ensure that the SLS readiness can be retrieved
     request:
       url: "{sls_base_url}/v1/readiness"
@@ -103,5 +103,5 @@ stages:
       method: POST
       verify: !bool "{verify}"
     response:
-      status_code: 405
+      status_code: 404
 
