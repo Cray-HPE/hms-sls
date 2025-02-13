@@ -54,13 +54,13 @@ RUN set -ex \
 
 ### Final Stage ###
 
-FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.15
+FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.21
 LABEL maintainer="Hewlett Packard Enterprise"
 STOPSIGNAL SIGTERM
 EXPOSE 8376
 
 # Default to latest schema version, this is overridden in the versioned chart.
-ENV SCHEMA_VERSION latest
+ENV SCHEMA_VERSION=latest
 
 RUN set -ex \
     && apk -U upgrade \
@@ -89,4 +89,4 @@ COPY --from=builder /go/sls-benchmark /usr/local/bin
 USER 65534:65534
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD sls
+CMD ["sls"]

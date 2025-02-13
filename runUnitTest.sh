@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # MIT License
 #
-# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2021,2025] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,24 +23,6 @@
 
 test_result=0
 
-# It's possible we don't have docker-compose, so if necessary bring our own.
-docker_compose_exe=$(command -v docker-compose)
-if ! [[ -x "$docker_compose_exe" ]]; then
-    if ! [[ -x "./docker-compose" ]]; then
-        echo "Getting docker-compose..."
-        curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" \
-        -o ./docker-compose
-
-        if [[ $? -ne 0 ]]; then
-            echo "Failed to fetch docker-compose!"
-            exit 1
-        fi
-
-        chmod +x docker-compose
-    fi
-    docker_compose_exe="./docker-compose"
-fi
-
 # Print executions
 set -x
 
@@ -49,7 +31,7 @@ PROJECT=$RANDOM
 NETWORK_NAME="${PROJECT}_default"
 INIT_CONTAINER_NAME="${PROJECT}_sls-init_1"
 
-${docker_compose_exe} --project-name $PROJECT -f docker-compose.testing.yaml up -d --build
+docker compose --project-name $PROJECT -f docker-compose.testing.yaml up -d --build
 if [[ $? -ne 0 ]]; then
     echo "Failed to setup environment!"
     exit 1
@@ -71,6 +53,6 @@ else
 fi
 
 # Cleanup.
-${docker_compose_exe} --project-name $PROJECT -f docker-compose.testing.yaml down
+docker compose --project-name $PROJECT -f docker-compose.testing.yaml down
 
 exit $test_result
