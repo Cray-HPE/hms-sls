@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Various code changes to accomodate module updates
 - Added image-pprof Makefile support
 - Resolved build warnings in Dockerfiles and docker compose files
-- Switchd CT tests from using RTS to RIE
+- Switched CT tests from using RTS to RIE
 
 ## [2.7.0] - 2025-01-08
 
