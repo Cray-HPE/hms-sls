@@ -2,7 +2,7 @@
 
 # MIT License
 #
-# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2022,2025] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,9 +24,10 @@
 
 # wait-for.sh; used by runCT.sh to make sure HSM has been populated with data before running.
 echo "Initiating..."
-URL="http://cray-smd:27779/hsm/v2/State/Components"
+# wait for the emulated Nodes to be discovered which take longer than the CMM
+URL="http://cray-smd:27779/hsm/v2/State/Components?type=Node"
 sentry=1
-limit=400
+limit=200
 while :; do
   length=$(curl --silent ${URL} | jq '.Components | length')
 
