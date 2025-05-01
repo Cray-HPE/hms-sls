@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2025-05-02
+
+## Update
+
+- Updated module and image dependencies to latest versions
+- Update version of Go to v1.24
+- Explicitly drain and close all http request and response bodies
+- Internal tracking ticket: CASMHMS-6399
+
 ## [2.8.0] - 2025-02-18
 
 ### Security

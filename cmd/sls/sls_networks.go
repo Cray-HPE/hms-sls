@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023,2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,8 @@ import (
 //  /networks GET API
 
 func doNetworksGet(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	// Get the networks from the database
 	networks, err := datastore.GetAllNetworks(r.Context())
 	if err != nil {
@@ -71,6 +73,8 @@ func doNetworksGet(w http.ResponseWriter, r *http.Request) {
 
 func doNetworksPost(w http.ResponseWriter, r *http.Request) {
 	var network sls_common.Network
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -141,6 +145,8 @@ func doNetworksPost(w http.ResponseWriter, r *http.Request) {
 //  /networks/{name} GET API
 
 func doNetworkObjGet(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	// Figure out what the requested network is
 	networkName := mux.Vars(r)["network"]
 
@@ -183,6 +189,8 @@ func doNetworkObjGet(w http.ResponseWriter, r *http.Request) {
 //  /networks/{network} PUT API
 
 func doNetworkObjPut(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	// Figure out what the requested network is
 	networkName := mux.Vars(r)["network"]
 	var network sls_common.Network
@@ -258,11 +266,14 @@ func doNetworkObjPut(w http.ResponseWriter, r *http.Request) {
 func doNetworkObjPatch(w http.ResponseWriter, r *http.Request) {
 	log.Printf("doNetworkObjPatch: not implemented yet.\n")
 	w.WriteHeader(http.StatusNotImplemented)
+	base.DrainAndCloseRequestBody(r)
 }
 
 //  /networks/{network} DELETE API
 
 func doNetworkObjDelete(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	// Figure out what the requested network is
 	networkName := mux.Vars(r)["network"]
 
@@ -292,6 +303,8 @@ func doNetworkObjDelete(w http.ResponseWriter, r *http.Request) {
 //  /search/networks GET API
 
 func doNetworksSearch(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	network := sls_common.Network{
 		Name:               r.FormValue("name"),
 		FullName:           r.FormValue("full_name"),

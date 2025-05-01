@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023,2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,8 @@ type putHardwareRequest struct {
 
 func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 	var jdata postHardwareRequest
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	// Decode the JSON to see what we are to post
 
@@ -148,6 +150,8 @@ func doHardwarePost(w http.ResponseWriter, r *http.Request) {
 //  /hardware GET API
 
 func doHardwareGet(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	hwList, err := datastore.GetAllXnameObjects(r.Context())
 	if err != nil {
 		log.Println("ERROR getting all /hardware objects from DB:", err)
@@ -170,6 +174,8 @@ func doHardwareGet(w http.ResponseWriter, r *http.Request) {
 //  /hardware/{xname} GET API
 
 func doHardwareObjGet(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	// Decode the URL to get the XName
 	vars := mux.Vars(r)
 	xname := xnametypes.NormalizeHMSCompID(vars["xname"])
@@ -204,6 +210,8 @@ func doHardwareObjGet(w http.ResponseWriter, r *http.Request) {
 //  /hardware/{xname} PUT API
 
 func doHardwareObjPut(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	// Decode the URL to get the XName
 
 	vars := mux.Vars(r)
@@ -306,6 +314,8 @@ func getCompTree(ctx context.Context, gcomp sls_common.GenericHardware, compList
 func doHardwareObjDelete(w http.ResponseWriter, r *http.Request) {
 	var compList []sls_common.GenericHardware
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	// Decode the URL to get the XName
 	vars := mux.Vars(r)
 	xname := xnametypes.NormalizeHMSCompID(vars["xname"])
@@ -368,6 +378,8 @@ func doHardwareSearch(w http.ResponseWriter, r *http.Request) {
 		Class:              sls_common.CabinetType(r.FormValue("class")),
 		ExtraPropertiesRaw: nil,
 	}
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	// Build up the extra properties section by gathering the various possible query object and adding them.
 	properties := make(map[string]interface{})
