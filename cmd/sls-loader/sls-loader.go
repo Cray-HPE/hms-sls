@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2020-2021,2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@ import (
 
 	"github.com/namsral/flag"
 
+	base "github.com/Cray-HPE/hms-base/v2"
 	hms_s3 "github.com/Cray-HPE/hms-s3"
 	sls_common "github.com/Cray-HPE/hms-sls/v2/pkg/sls-common"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -218,9 +219,7 @@ func isSLSEmpty(ctx context.Context, slsURL string) (bool, error) {
 	req = req.WithContext(ctx)
 
 	resp, doErr := httpClient.Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
+	defer base.DrainAndCloseResponseBody(resp)
 	if doErr != nil {
 		return false, doErr
 	}
@@ -307,9 +306,7 @@ func uploadFileToSLS(ctx context.Context, slsFilePath, slsURL string) error {
 
 	// Send it.
 	resp, doErr := httpClient.Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
+	defer base.DrainAndCloseResponseBody(resp)
 	if doErr != nil {
 		logger.Error("Failed to pop")
 		panic(doErr)

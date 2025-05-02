@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2023] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2023,2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -94,6 +94,8 @@ func dbReady(ctx context.Context) bool {
 // /verion API: Get the current version information.
 
 func doVersionGet(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	if r.Method != "GET" {
 		log.Printf("ERROR: Bad request type for '%s': %s\n", r.URL.Path,
 			r.Method)
@@ -143,6 +145,8 @@ func doHealthGet(w http.ResponseWriter, r *http.Request) {
 	//  find out what is going on with the system.  This should return
 	//  information in a human-readable format that will help to
 	//  determine the state of this service.
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	log.Printf("INFO: entering health check")
 	if r.Method != "GET" {
@@ -201,6 +205,8 @@ func doLivenessGet(w http.ResponseWriter, r *http.Request) {
 	//  for liveness/readiness checks.  This function should only be
 	//  used to indicate the server is still alive and processing requests.
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	if r.Method != "GET" {
 		log.Printf("ERROR: Bad request type for '%s': %s\n", r.URL.Path, r.Method)
 		pdet := base.NewProblemDetails("about:blank",
@@ -221,6 +227,8 @@ func doReadinessGet(w http.ResponseWriter, r *http.Request) {
 	//  prevents usage.  If this fails too many times, the instance
 	//  will be killed and re-started.  Only fail this if restarting
 	//  this service is likely to fix the problem.
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	if r.Method != "GET" {
 		log.Printf("ERROR: Bad request type for '%s': %s\n", r.URL.Path,
@@ -249,6 +257,8 @@ func doReadinessGet(w http.ResponseWriter, r *http.Request) {
 // POST /dumpstate API
 // This used to be supported but is no longer supported.
 func doPostDumpState(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	pdet := base.NewProblemDetails("about: blank",
 		"Method Not Allowed",
 		"POST for dumpstate is not supported. Use GET instead.",
@@ -259,6 +269,8 @@ func doPostDumpState(w http.ResponseWriter, r *http.Request) {
 
 // GET /dumpstate API
 func doDumpState(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	ret := sls_common.SLSState{
 		Hardware: make(map[string]sls_common.GenericHardware),
 		Networks: make(map[string]sls_common.Network),
@@ -308,6 +320,8 @@ func doDumpState(w http.ResponseWriter, r *http.Request) {
 func doLoadState(w http.ResponseWriter, r *http.Request) {
 	var inputData sls_common.SLSState
 	var buf bytes.Buffer
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	// Check for the deprecated and ignored private_key form file
 	_, _, privateKeyErr := r.FormFile("private_key")
