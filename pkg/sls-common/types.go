@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022, 2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"slices"
+	"strings"
 
 	"github.com/Cray-HPE/hms-xname/xnametypes"
 )
@@ -368,27 +370,34 @@ type Network struct {
 // NetworkExtraProperties provides additional network information
 type NetworkExtraProperties struct {
 	CIDR      string  `json:"CIDR"`
+	CIDR6     string  `json:"CIDR6,omitempty"`
 	VlanRange []int16 `json:"VlanRange"`
 	MTU       int16   `json:"MTU,omitempty"`
 	Comment   string  `json:"Comment,omitempty"`
 	PeerASN   int     `json:"PeerASN,omitempty"`
 	MyASN     int     `json:"MyASN,omitempty"`
 
-	Subnets            []IPV4Subnet `json:"Subnets"`
-	SystemDefaultRoute string       `json:"SystemDefaultRoute,omitempty"`
+	Subnets            []IPSubnet `json:"Subnets"`
+	SystemDefaultRoute string     `json:"SystemDefaultRoute,omitempty"`
 }
 
 // LookupSubnet returns a subnet by name
-func (network *NetworkExtraProperties) LookupSubnet(name string) (IPV4Subnet, int, error) {
-	var found []IPV4Subnet
+func (network *NetworkExtraProperties) LookupSubnet(name string) (IPSubnet, int, error) {
+	var found []IPSubnet
 	if len(network.Subnets) == 0 {
-		return IPV4Subnet{}, 0, fmt.Errorf("subnet not found (%v)", name)
+		return IPSubnet{}, 0, fmt.Errorf(
+			"subnet not found (%v)",
+			name,
+		)
 	}
 	var index int
 	for i, v := range network.Subnets {
 		if v.Name == name {
 			index = i
-			found = append(found, v)
+			found = append(
+				found,
+				v,
+			)
 		}
 	}
 	if len(found) == 1 {
@@ -396,28 +405,37 @@ func (network *NetworkExtraProperties) LookupSubnet(name string) (IPV4Subnet, in
 		return found[0], index, nil
 	}
 	if len(found) > 1 {
-		return found[0], 0, fmt.Errorf("found %v subnets instead of just one", len(found))
+		return found[0], 0, fmt.Errorf(
+			"found %v subnets instead of just one",
+			len(found),
+		)
 	}
-	return IPV4Subnet{}, 0, fmt.Errorf("subnet not found (%v)", name)
+	return IPSubnet{}, 0, fmt.Errorf(
+		"subnet not found (%v)",
+		name,
+	)
 }
 
 // IPReservation is a type for managing IP Reservations
 type IPReservation struct {
-	Name      string   `json:"Name"`
-	IPAddress net.IP   `json:"IPAddress"`
-	Aliases   []string `json:"Aliases,omitempty"`
+	Name       string   `json:"Name"`
+	IPAddress  net.IP   `json:"IPAddress"`
+	IPAddress6 net.IP   `json:"IPAddress6,omitempty"`
+	Aliases    []string `json:"Aliases,omitempty"`
 
 	Comment string `json:"Comment,omitempty"`
 }
 
-// IPV4Subnet is a type for managing IPv4 Subnets
-type IPV4Subnet struct {
+// IPSubnet is a type for managing IP Subnets
+type IPSubnet struct {
 	FullName         string          `json:"FullName"`
 	CIDR             string          `json:"CIDR"`
+	CIDR6            string          `json:"CIDR6,omitempty"`
 	IPReservations   []IPReservation `json:"IPReservations,omitempty"`
 	Name             string          `json:"Name"`
 	VlanID           int16           `json:"VlanID"`
 	Gateway          net.IP          `json:"Gateway"`
+	Gateway6         net.IP          `json:"Gateway6,omitempty"`
 	DHCPStart        net.IP          `json:"DHCPStart,omitempty"`
 	DHCPEnd          net.IP          `json:"DHCPEnd,omitempty"`
 	Comment          string          `json:"Comment,omitempty"`
@@ -426,13 +444,100 @@ type IPV4Subnet struct {
 	MetalLBPoolName  string          `json:"MetalLBPoolName,omitempty"`
 }
 
+// IPV4Subnet is an alias for code still relying on the old name of IPSubnet.
+type IPV4Subnet = IPSubnet
+
 // ReservationsByName presents the IPReservations in a map by name
-func (subnet *IPV4Subnet) ReservationsByName() map[string]IPReservation {
+func (subnet *IPSubnet) ReservationsByName() map[string]IPReservation {
 	reservations := make(map[string]IPReservation)
-	for _, v := range subnet.IPReservations {
-		reservations[v.Name] = v
+	for _, reservation := range subnet.IPReservations {
+		reservations[reservation.Name] = reservation
 	}
 	return reservations
+}
+
+// ReservedIPs returns a list of IPs already reserved within the subnet.
+func (subnet *IPSubnet) ReservedIPs() []net.IP {
+	var addresses []net.IP
+	for _, v := range subnet.IPReservations {
+		addresses = append(
+			addresses,
+			v.IPAddress,
+		)
+	}
+	return addresses
+}
+
+// LookupReservation searches the subnet for an IPReservation that matches the name provided
+func (subnet *IPSubnet) LookupReservation(resName string) IPReservation {
+	for _, v := range subnet.IPReservations {
+		if resName == v.Name {
+			return v
+		}
+	}
+	return IPReservation{}
+}
+
+// AddReservationAlias adds an alias to a reservation if it doesn't already exist.
+func (reservation *IPReservation) AddReservationAlias(alias string) {
+	if ! slices.Contains(reservation.Aliases, alias) {
+		reservation.Aliases = append(reservation.Aliases, alias)
+	}
+}
+
+// AddReservationWithPin adds a new IPv4 reservation to the subnet with the last octet pinned
+func (subnet *IPSubnet) AddReservationWithPin(
+	name, comment string, pin uint8,
+) (*IPReservation, error) {
+	// Grab the "floor" of the subnet and alter the last byte to match the pinned byte
+	// modulo 4/16 bit ip addresses
+	// Worth noting that I could not seem to do this by copying the IP from the struct into a new
+	// net.IP struct and modifying only the last byte. I suspected complier error, but as every
+	// good programmer knows, it's probably not a compiler error and the time to debug the compiler
+	// is not *NOW*
+	newIP := make(
+		net.IP,
+		4,
+	)
+	_, cidr, err := net.ParseCIDR(subnet.CIDR)
+	if  err != nil {
+		return nil, err
+	}
+	if len(cidr.IP) == 4 {
+		newIP[0] = cidr.IP[0]
+		newIP[1] = cidr.IP[1]
+		newIP[2] = cidr.IP[2]
+		newIP[3] = pin
+	}
+	if len(cidr.IP) == 16 {
+		newIP[0] = cidr.IP[12]
+		newIP[1] = cidr.IP[13]
+		newIP[2] = cidr.IP[14]
+		newIP[3] = pin
+	}
+	if comment != "" {
+		subnet.IPReservations = append(
+			subnet.IPReservations,
+			IPReservation{
+				IPAddress: newIP,
+				Name:      name,
+				Comment:   comment,
+				Aliases: strings.Split(
+					comment,
+					",",
+				),
+			},
+		)
+	} else {
+		subnet.IPReservations = append(
+			subnet.IPReservations,
+			IPReservation{
+				IPAddress: newIP,
+				Name:      name,
+			},
+		)
+	}
+	return &subnet.IPReservations[len(subnet.IPReservations)-1], nil
 }
 
 type NetworkArray []Network
