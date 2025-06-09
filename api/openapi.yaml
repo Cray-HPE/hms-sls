@@ -692,6 +692,9 @@ components:
           type: string
           pattern: "[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3}"
           example: "10.253.0.0/16"
+        CIDR6:
+          type: string
+          example: "fdf8:413:de2c:205::/64"
         VlanRange:
           type: array
           items:
@@ -720,12 +723,18 @@ components:
           type: string
           pattern: "[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}/[0-9]{1,2}|[0-9a-fA-F:]+/[0-9]{1,3}"
           example: "10.253.0.0/16"
+        CIDR6:
+          type: string
+          example: "fdf8:413:de2c:205::/64"
         VlanID:
           type: integer
           example: 60
         Gateway:
           type: string
           format: ipv4
+        Gateway6:
+          type: string
+          format: ipv6
         DHCPStart:
           type: string
           format: ipv4
@@ -745,6 +754,9 @@ components:
           IPAddress:
             type: string
             format: ipv4
+          IPAddress6:
+            type: string
+            format: ipv6
           Name:
             type: string
             pattern: "[^ ]+"
