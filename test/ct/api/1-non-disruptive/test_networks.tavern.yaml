@@ -78,6 +78,9 @@ stages:
                         type: str
                         required: False
                         pattern: "([0-9]+.[0-9]+.[0-9]+.[0-9]+/[0-9]+)|(([0-9a-fA-F]{{0,4}}[:])+([0-9a-fA-F]{{0,4}}|([0-9]+[.]){{3}}[0-9]+)/[0-9]+)"
+                      CIDR6:
+                        type: str
+                        required: False
                       MTU:
                         type: int
                         required: False
@@ -99,6 +102,9 @@ stages:
                                 type: str
                                 required: False
                                 pattern: "([0-9]+.[0-9]+.[0-9]+.[0-9]+/[0-9]+)|(([0-9a-fA-F]{{0,4}}[:])+([0-9a-fA-F]{{0,4}}|([0-9]+[.]){{3}}[0-9]+)/[0-9]+)"
+                              CIDR6:
+                                type: str
+                                required: False
                               DHCPEnd:
                                 type: str
                                 required: False
@@ -114,6 +120,9 @@ stages:
                                 type: str
                                 required: False
                                 pattern: "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+                              Gateway6:
+                                type: str
+                                required: False
                               IPReservations:
                                 type: seq
                                 required: False
@@ -131,6 +140,9 @@ stages:
                                       IPAddress:
                                         type: str
                                         pattern: "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+                                      IPAddress6:
+                                        type: str
+                                        required: False
                                       Name:
                                         type: str
                               MetalLBPoolName:
@@ -203,6 +215,9 @@ stages:
                     type: str
                     required: False
                     pattern: "([0-9]+.[0-9]+.[0-9]+.[0-9]+/[0-9]+)|(([0-9a-fA-F]{{0,4}}[:])+([0-9a-fA-F]{{0,4}}|([0-9]+[.]){{3}}[0-9]+)/[0-9]+)"
+                  CIDR6:
+                    type: str
+                    required: False
                   MTU:
                     type: int
                     required: False
@@ -224,6 +239,9 @@ stages:
                             type: str
                             required: False
                             pattern: "([0-9]+.[0-9]+.[0-9]+.[0-9]+/[0-9]+)|(([0-9a-fA-F]{{0,4}}[:])+([0-9a-fA-F]{{0,4}}|([0-9]+[.]){{3}}[0-9]+)/[0-9]+)"
+                          CIDR6:
+                            type: str
+                            required: False
                           DHCPEnd:
                             type: str
                             required: False
@@ -239,6 +257,9 @@ stages:
                             type: str
                             required: False
                             pattern: "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+                          Gateway6:
+                            type: str
+                            required: False
                           IPReservations:
                             type: seq
                             required: False
@@ -256,6 +277,9 @@ stages:
                                   IPAddress:
                                     type: str
                                     pattern: "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+                                  IPAddress6:
+                                    type: str
+                                    required: False
                                   Name:
                                     type: str
                           MetalLBPoolName:
