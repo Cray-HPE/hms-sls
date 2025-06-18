@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2019, 2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2019, 2021-2022, 2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"slices"
 
 	"github.com/Cray-HPE/hms-xname/xnametypes"
 )
@@ -115,7 +116,10 @@ func (gh *GenericHardware) ToJson() (*string, error) {
 }
 
 func (gh *GenericHardware) FromJson(in string) error {
-	err := json.Unmarshal([]byte(in), gh)
+	err := json.Unmarshal(
+		[]byte(in),
+		gh,
+	)
 	return err
 }
 
@@ -378,27 +382,40 @@ type NetworkExtraProperties struct {
 	SystemDefaultRoute string     `json:"SystemDefaultRoute,omitempty"`
 }
 
-// LookupSubnet returns a subnet by name
-func (network *NetworkExtraProperties) LookupSubnet(name string) (IPV4Subnet, int, error) {
-	var found []IPV4Subnet
+// LookupSubnet returns a subnet by name, returning the subnet, its index, and any error.
+func (network *NetworkExtraProperties) LookupSubnet(name string) (subnet IPSubnet, index int, err error) {
+	var found []IPSubnet
 	if len(network.Subnets) == 0 {
-		return IPV4Subnet{}, 0, fmt.Errorf("subnet not found (%v)", name)
+		return IPSubnet{}, 0, fmt.Errorf(
+			"subnet not found (%v)",
+			name,
+		)
 	}
-	var index int
 	for i, v := range network.Subnets {
 		if v.Name == name {
 			index = i
-			found = append(found, v)
+			found = append(
+				found,
+				v,
+			)
 		}
 	}
 	if len(found) == 1 {
-		// The Index is valid since, only one match was found!
-		return found[0], index, nil
+		subnet = found[0]
+	} else if len(found) > 1 {
+		subnet = found[0]
+		index = 0
+		err = fmt.Errorf(
+			"found %v subnets instead of just one",
+			len(found),
+		)
+	} else {
+		err = fmt.Errorf(
+			"subnet not found (%v)",
+			name,
+		)
 	}
-	if len(found) > 1 {
-		return found[0], 0, fmt.Errorf("found %v subnets instead of just one", len(found))
-	}
-	return IPV4Subnet{}, 0, fmt.Errorf("subnet not found (%v)", name)
+	return subnet, index, err
 }
 
 // IPReservation is a type for managing IP Reservations.
@@ -408,6 +425,19 @@ type IPReservation struct {
 	IPAddress6 net.IP   `json:"IPAddress6,omitempty"`
 	Aliases    []string `json:"Aliases,omitempty"`
 	Comment    string   `json:"Comment,omitempty"`
+}
+
+// AddReservationAlias adds an alias to a reservation if it doesn't already exist.
+func (reservation *IPReservation) AddReservationAlias(alias string) {
+	if !slices.Contains(
+		reservation.Aliases,
+		alias,
+	) {
+		reservation.Aliases = append(
+			reservation.Aliases,
+			alias,
+		)
+	}
 }
 
 // IPSubnet represents an SLS subnet entry.
@@ -435,13 +465,35 @@ IPV$Subnet was created.
 */
 type IPV4Subnet = IPSubnet
 
-// ReservationsByName presents the IPReservations in a map by name
-func (subnet *IPSubnet) ReservationsByName() map[string]IPReservation {
-	reservations := make(map[string]IPReservation)
-	for _, v := range subnet.IPReservations {
-		reservations[v.Name] = v
+// ReservationsByName presents the IPReservations in a map by name.
+func (subnet *IPSubnet) ReservationsByName() (reservations map[string]IPReservation) {
+	reservations = make(map[string]IPReservation)
+	for _, reservation := range subnet.IPReservations {
+		reservations[reservation.Name] = reservation
 	}
 	return reservations
+}
+
+// ReservedIPs returns a list of IPs already reserved within the subnet.
+func (subnet *IPSubnet) ReservedIPs() (reservedIPs []net.IP) {
+	for _, v := range subnet.IPReservations {
+		reservedIPs = append(
+			reservedIPs,
+			v.IPAddress,
+		)
+	}
+	return reservedIPs
+}
+
+// LookupReservation searches the subnet for an IPReservation that matches the name provided.
+func (subnet *IPSubnet) LookupReservation(resName string) (reservation IPReservation) {
+	for _, v := range subnet.IPReservations {
+		if resName == v.Name {
+			reservation = v
+			break
+		}
+	}
+	return reservation
 }
 
 type NetworkArray []Network
