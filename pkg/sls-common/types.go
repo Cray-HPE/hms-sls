@@ -367,15 +367,15 @@ type Network struct {
 
 // NetworkExtraProperties provides additional network information
 type NetworkExtraProperties struct {
-	CIDR      string  `json:"CIDR"`
-	VlanRange []int16 `json:"VlanRange"`
-	MTU       int16   `json:"MTU,omitempty"`
-	Comment   string  `json:"Comment,omitempty"`
-	PeerASN   int     `json:"PeerASN,omitempty"`
-	MyASN     int     `json:"MyASN,omitempty"`
-
-	Subnets            []IPV4Subnet `json:"Subnets"`
-	SystemDefaultRoute string       `json:"SystemDefaultRoute,omitempty"`
+	CIDR               string     `json:"CIDR"`
+	CIDR6              string     `json:"CIDR6,omitempty"`
+	VlanRange          []int16    `json:"VlanRange"`
+	MTU                int16      `json:"MTU,omitempty"`
+	Comment            string     `json:"Comment,omitempty"`
+	PeerASN            int        `json:"PeerASN,omitempty"`
+	MyASN              int        `json:"MyASN,omitempty"`
+	Subnets            []IPSubnet `json:"Subnets"`
+	SystemDefaultRoute string     `json:"SystemDefaultRoute,omitempty"`
 }
 
 // LookupSubnet returns a subnet by name
@@ -401,23 +401,25 @@ func (network *NetworkExtraProperties) LookupSubnet(name string) (IPV4Subnet, in
 	return IPV4Subnet{}, 0, fmt.Errorf("subnet not found (%v)", name)
 }
 
-// IPReservation is a type for managing IP Reservations
+// IPReservation is a type for managing IP Reservations.
 type IPReservation struct {
-	Name      string   `json:"Name"`
-	IPAddress net.IP   `json:"IPAddress"`
-	Aliases   []string `json:"Aliases,omitempty"`
-
-	Comment string `json:"Comment,omitempty"`
+	Name       string   `json:"Name"`
+	IPAddress  net.IP   `json:"IPAddress"`
+	IPAddress6 net.IP   `json:"IPAddress6,omitempty"`
+	Aliases    []string `json:"Aliases,omitempty"`
+	Comment    string   `json:"Comment,omitempty"`
 }
 
-// IPV4Subnet is a type for managing IPv4 Subnets
-type IPV4Subnet struct {
+// IPSubnet represents an SLS subnet entry.
+type IPSubnet struct {
 	FullName         string          `json:"FullName"`
 	CIDR             string          `json:"CIDR"`
+	CIDR6            string          `json:"CIDR6,omitempty"`
 	IPReservations   []IPReservation `json:"IPReservations,omitempty"`
 	Name             string          `json:"Name"`
 	VlanID           int16           `json:"VlanID"`
 	Gateway          net.IP          `json:"Gateway"`
+	Gateway6         net.IP          `json:"Gateway6,omitempty"`
 	DHCPStart        net.IP          `json:"DHCPStart,omitempty"`
 	DHCPEnd          net.IP          `json:"DHCPEnd,omitempty"`
 	Comment          string          `json:"Comment,omitempty"`
@@ -426,8 +428,15 @@ type IPV4Subnet struct {
 	MetalLBPoolName  string          `json:"MetalLBPoolName,omitempty"`
 }
 
+/*
+IPV4Subnet was the previous name of the IPSubnet struct. IPV4Subnet was renamed to IPSubnet with the addition of
+IPv6 to CSM in V1.7.0. To mitigate a refactor of hms-sls, and any other downstream Go code in CSM, the legacy alias
+IPV$Subnet was created.
+*/
+type IPV4Subnet = IPSubnet
+
 // ReservationsByName presents the IPReservations in a map by name
-func (subnet *IPV4Subnet) ReservationsByName() map[string]IPReservation {
+func (subnet *IPSubnet) ReservationsByName() map[string]IPReservation {
 	reservations := make(map[string]IPReservation)
 	for _, v := range subnet.IPReservations {
 		reservations[v.Name] = v

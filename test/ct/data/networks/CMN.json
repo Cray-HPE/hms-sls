@@ -13,6 +13,7 @@
     "Subnets": [
       {
         "CIDR": "10.102.3.64/26",
+        "CIDR6": "fdf8:413:de2c:204::/64",
         "FullName": "CMN Dynamic MetalLB",
         "Gateway": "10.102.3.65",
         "MetalLBPoolName": "customer-management",
@@ -21,22 +22,27 @@
       },
       {
         "CIDR": "10.102.3.0/25",
+        "CIDR6": "fdf8:413:de2c:204::/64",
         "FullName": "CMN Management Network Infrastructure",
         "Gateway": "10.102.3.1",
+        "Gateway6": "fdf8:413:de2c:204::1",
         "IPReservations": [
           {
             "Comment": "x3000c0h23s1",
             "IPAddress": "10.102.3.2",
+            "IPAddress6": "fdf8:413:de2c:204::2",
             "Name": "sw-spine-001"
           },
           {
             "Comment": "x3000c0h23s2",
             "IPAddress": "10.102.3.3",
+            "IPAddress6": "fdf8:413:de2c:204::3",
             "Name": "sw-spine-002"
           },
           {
             "Comment": "x3000c0w22",
             "IPAddress": "10.102.3.4",
+            "IPAddress6": "fdf8:413:de2c:204::4",
             "Name": "sw-leaf-bmc-001"
           }
         ],
@@ -45,10 +51,12 @@
       },
       {
         "CIDR": "10.102.3.32/25",
+        "CIDR6": "fdf8:413:de2c:204::100/64",
         "DHCPEnd": "10.102.3.63",
         "DHCPStart": "10.102.3.44",
         "FullName": "CMN Bootstrap DHCP Subnet",
         "Gateway": "10.102.3.1",
+        "Gateway6": "fdf8:413:de2c:204::1",
         "IPReservations": [
           {
             "Comment": "k8s-virtual-ip",
@@ -63,6 +71,7 @@
             ],
             "Comment": "x3000c0s17b0n0",
             "IPAddress": "10.102.3.35",
+            "IPAddress6": "fdf8:413:de2c:204::100",
             "Name": "ncn-s003"
           },
           {
@@ -73,6 +82,7 @@
             ],
             "Comment": "x3000c0s15b0n0",
             "IPAddress": "10.102.3.36",
+            "IPAddress6": "fdf8:413:de2c:204::101",
             "Name": "ncn-s002"
           },
           {
@@ -83,6 +93,7 @@
             ],
             "Comment": "x3000c0s13b0n0",
             "IPAddress": "10.102.3.37",
+            "IPAddress6": "fdf8:413:de2c:204::102",
             "Name": "ncn-s001"
           },
           {
@@ -93,6 +104,7 @@
             ],
             "Comment": "x3000c0s11b0n0",
             "IPAddress": "10.102.3.38",
+            "IPAddress6": "fdf8:413:de2c:204::103",
             "Name": "ncn-w003"
           },
           {
@@ -103,6 +115,7 @@
             ],
             "Comment": "x3000c0s9b0n0",
             "IPAddress": "10.102.3.39",
+            "IPAddress6": "fdf8:413:de2c:204::104",
             "Name": "ncn-w002"
           },
           {
@@ -113,6 +126,7 @@
             ],
             "Comment": "x3000c0s7b0n0",
             "IPAddress": "10.102.3.40",
+            "IPAddress6": "fdf8:413:de2c:204::105",
             "Name": "ncn-w001"
           },
           {
@@ -123,6 +137,7 @@
             ],
             "Comment": "x3000c0s5b0n0",
             "IPAddress": "10.102.3.41",
+            "IPAddress6": "fdf8:413:de2c:204::106",
             "Name": "ncn-m003"
           },
           {
@@ -133,6 +148,7 @@
             ],
             "Comment": "x3000c0s3b0n0",
             "IPAddress": "10.102.3.42",
+            "IPAddress6": "fdf8:413:de2c:204::107",
             "Name": "ncn-m002"
           },
           {
@@ -143,6 +159,7 @@
             ],
             "Comment": "x3000c0s1b0n0",
             "IPAddress": "10.102.3.43",
+            "IPAddress6": "fdf8:413:de2c:204::108",
             "Name": "ncn-m001"
           }
         ],

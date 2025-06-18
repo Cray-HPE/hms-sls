@@ -7,6 +7,7 @@
   "Type": "ethernet",
   "ExtraProperties": {
     "CIDR": "2620:0:28B0:AC::/64",
+    "CIDR6": "fdf8:413:de2c:205::/64",
     "MTU": 9000,
     "MyASN": 65532,
     "PeerASN": 65533,
@@ -23,6 +24,7 @@
         "CIDR": "::10.102.3.0/25",
         "FullName": "CMN Management Network Infrastructure",
         "Gateway": "10.102.3.1",
+        "Gateway6": "fdf8:413:de2c:205::1",
         "IPReservations": [
         ],
         "Name": "network_hardware",
@@ -30,6 +32,7 @@
       },
       {
         "CIDR": "2620:0:28B0:ab::/66",
+        "CIDR6": "fdf8:413:de2c:205::/120",
         "FullName": "CMN Bootstrap DHCP Subnet",
         "Gateway": "10.102.3.1",
         "IPReservations": [
