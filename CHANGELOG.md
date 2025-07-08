@@ -5,16 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [2.11.0] - 2025-06-18
+
+### Added
+
+- IPv6 support in SLS subnets
+
+### Changed
+
+- Deprecated `IPV4Subnet` in favor of `IPSubnet` (deprecated alias `IPV4Subnet` points to `IPSubnet`)
+
 ## [2.10.0] - 2025-06-09
 
-## Changed
+### Changed
 
 - Changed tests to allow the fields: CIDR6, Gateway6, and IPAddress6.
 - Added the new fields to the API docs
 
 ## [2.9.0] - 2025-05-02
 
-## Update
+### Update
 
 - Updated module and image dependencies to latest versions
 - Update version of Go to v1.24
