@@ -113,7 +113,7 @@ services:
       - sls
 
   cray-smd:
-    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.38.0
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.43.0
     environment:
       - POSTGRES_HOST=hmsds-postgres
       - POSTGRES_PORT=5432
@@ -135,7 +135,7 @@ services:
       - sls
 
   cray-smd-init:
-    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.38.0
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.43.0
     environment:
       - SMD_DBHOST=hmsds-postgres
       - SMD_DBPORT=5432
@@ -191,7 +191,7 @@ services:
       - sls
 
   cray-hms-hmcollector:
-    image: artifactory.algol60.net/csm-docker/stable/hms-hmcollector:2.38.0
+    image: artifactory.algol60.net/csm-docker/stable/hms-hmcollector:2.39.0
     environment:
       - LOG_LEVEL=TRACE
       - SM_URL=http://cray-smd:27779
