@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated Alpine base image to pick up security fixes
 - Updated HMS image version dependencies
-- Internal tracking ticket: CASMHMS-6599
+- Internal tracking ticket: CASMHMS-6602
 
 ## [2.11.0] - 2025-06-18
 
