@@ -65,6 +65,8 @@ ENV SCHEMA_VERSION=latest
 RUN set -ex \
     && apk -U upgrade \
     && apk add --no-cache \
+        "libcrypto3>=3.5.6-r0" \
+        "libssl3>=3.5.6-r0" \
         curl \
         jq \
         bind-tools \

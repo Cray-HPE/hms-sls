@@ -30,6 +30,9 @@ ENV PATH="/src/libs:${PATH}"
 ENV PATH="/src/app:${PATH}"
 
 USER root
+RUN apk add --upgrade --no-cache \
+	"libcrypto3>=3.5.6-r0" \
+	"libssl3>=3.5.6-r0"
 RUN chown -R 65534:65534 /src
 USER 65534:65534
 
