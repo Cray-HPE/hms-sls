@@ -25,6 +25,8 @@ FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.22
 RUN set -x \
     && apk -U upgrade \
     && apk add --no-cache \
+        "libcrypto3>=3.5.6-r0" \
+        "libssl3>=3.5.6-r0" \
         bash \
         curl \
         jq
